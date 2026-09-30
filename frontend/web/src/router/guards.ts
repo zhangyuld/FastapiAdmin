@@ -246,7 +246,7 @@ async function handleStorageFailure(): Promise<void> {
  */
 export class RoutePermissionValidator {
   /** 已被 RouteRegistry 注册为静态壳层的路由第一段（不在后端菜单中，始终放行） */
-  private static readonly SHELL_SEGMENTS = new Set(["home", "dashboard", "fastlink"]);
+  private static readonly SHELL_SEGMENTS = new Set(["home", "fastlink"]);
 
   /** 判断用户是否有权限访问 targetPath（/ 和壳层路由始终放行） */
   static hasPermission(targetPath: string, menuList: AppRouteRecord[]): boolean {

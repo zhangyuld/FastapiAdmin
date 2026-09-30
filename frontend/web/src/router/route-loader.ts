@@ -368,7 +368,7 @@ export class RouteRegistry {
 
   /** 判断 path 第一段是否是壳层路径 */
   private isShellSegment(segment: string): boolean {
-    return ["home", "profile", "changelog", "dashboard"].includes(segment);
+    return ["home", "profile", "changelog"].includes(segment);
   }
 }
 

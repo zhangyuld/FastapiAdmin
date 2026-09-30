@@ -14,8 +14,6 @@ import { defineComponent, h, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { $t } from "@/locales";
 import LayoutComponent from "@/layouts/index.vue";
-import DashboardWorkplace from "@views/dashboard/workplace/index.vue";
-import DashboardAnalysis from "@views/dashboard/analysis/index.vue";
 import RedirectView from "@views/redirect/index.vue";
 import LoginView from "@views/module_system/auth/login/index.vue";
 import Exception401 from "@views/exception/401/index.vue";
@@ -103,33 +101,6 @@ export const HOME_MENU_META: RouteMeta = {
   keepAlive: true,
   fixedTab: true,
 };
-
-/** 仪表盘父菜单配置 */
-export const DASHBOARD_PARENT_META: RouteMeta = {
-  title: "menus.dashboard.title",
-  icon: "ri:pie-chart-line",
-  alwaysShow: true,
-};
-
-/** Dashboard 静态子路由（唯一数据源，壳层补全和静态路由共用） */
-export const dashboardLayoutChildren: AppRouteRecordRaw[] = [
-  {
-    path: "workplace",
-    name: "DashboardWorkplace",
-    component: DashboardWorkplace,
-    meta: { title: "menus.dashboard.workplace", icon: "ri:bar-chart-box-line", keepAlive: true },
-  },
-  {
-    path: "analysis",
-    name: "DashboardAnalysis",
-    component: DashboardAnalysis,
-    meta: {
-      title: "menus.dashboard.analysis",
-      icon: "ri:align-item-bottom-line",
-      keepAlive: false,
-    },
-  },
-];
 
 // ──────── 路由常量 ────────
 
@@ -232,7 +203,13 @@ export const staticRoutes: AppRouteRecordRaw[] = [
     meta: { hidden: true, isHideTab: true, title: "500" },
     component: Exception500,
   },
-  // 根 Layout：存放壳层路由（home/dashboard/fastlink）
+  // 兼容历史仪表盘地址，统一回到新的首页
+  {
+    path: "/dashboard/:pathMatch(.*)*",
+    redirect: "/home",
+    meta: { hidden: true, isHideTab: true },
+  },
+  // 根 Layout：存放壳层路由（home/fastlink）
   {
     path: "/",
     name: ROOT_LAYOUT_ROUTE_NAME,
@@ -244,13 +221,6 @@ export const staticRoutes: AppRouteRecordRaw[] = [
         name: HOME_ROUTE_NAME,
         component: DashboardHome,
         meta: HOME_MENU_META,
-      },
-      {
-        path: "dashboard",
-        name: "Dashboard",
-        redirect: "/dashboard/workplace",
-        meta: DASHBOARD_PARENT_META,
-        children: dashboardLayoutChildren,
       },
       // 隐藏的壳层路由：个人中心、更新日志、定价、教程、AI 聊天
       {

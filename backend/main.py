@@ -1,3 +1,4 @@
+import asyncio
 import os
 from typing import Annotated
 
@@ -31,6 +32,7 @@ def run(
     os.environ["ENVIRONMENT"] = env.value
 
     from app.utils.banner import worship
+
     typer.secho(message=f"{worship()}", fg=typer.colors.GREEN)
     from app.config.setting import settings
 
@@ -86,6 +88,38 @@ def upgrade(
     os.environ["ENVIRONMENT"] = env.value
     command.upgrade(config=alembic_cfg, revision="head")
     typer.echo(message="所有迁移已应用。")
+
+
+@fastapiadmin_cli.command(
+    name="menu-upgrade",
+    help="将已有数据库菜单升级为进销存菜单结构，运行 uv run main.py menu-upgrade --env=dev",
+)
+def menu_upgrade(
+    env: Annotated[EnvironmentEnum, typer.Option("--env", help="运行环境 (dev, prod)")] = EnvironmentEnum.DEV,
+) -> None:
+    """幂等迁移已有菜单数据，保留页面节点 ID、组件和权限标识。"""
+    os.environ["ENVIRONMENT"] = env.value
+
+    from app.scripts.inventory_menu import run_inventory_menu_upgrade
+
+    changed = asyncio.run(run_inventory_menu_upgrade())
+    typer.echo(message="菜单迁移完成。" if changed else "菜单已是目标结构，无需重复迁移。")
+
+
+@fastapiadmin_cli.command(
+    name="inventory-menu-init",
+    help="初始化进销存规划菜单，运行 uv run main.py inventory-menu-init --env=dev",
+)
+def inventory_menu_init(
+    env: Annotated[EnvironmentEnum, typer.Option("--env", help="运行环境 (dev, prod)")] = EnvironmentEnum.DEV,
+) -> None:
+    """幂等创建进销存目录和停用页面，不覆盖已有菜单配置。"""
+    os.environ["ENVIRONMENT"] = env.value
+
+    from app.scripts.inventory_menu import run_inventory_business_menu_setup
+
+    created_count = asyncio.run(run_inventory_business_menu_setup())
+    typer.echo(message=f"进销存菜单初始化完成，新增 {created_count} 个节点。")
 
 
 if __name__ == "__main__":

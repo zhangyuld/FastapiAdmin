@@ -33,14 +33,22 @@ _OPERATOR_MAP: dict[str, str] = {
 class CRUDBase[ModelType: ModelMixin, CreateSchemaType, UpdateSchemaType]:
     """事务边界在 HTTP 层（db_getter 有 session.begin()），CRUD 只 flush 不 commit。
 
-    CRUD 层只自动填充 created_id/updated_id，不按这些字段过滤数据。
-    数据权限由 Service 层负责 —— Service 层忘记过滤 = 越权风险。
+    CRUD 层自动填充 created_id/updated_id，并默认应用角色数据范围。
+    企业共享基础数据可显式传入 enforce_data_scope=False，其他模型保持默认隔离行为。
     """
 
-    def __init__(self, model: type[ModelType], auth: AuthSchema, db: AsyncSession) -> None:
+    def __init__(
+        self,
+        model: type[ModelType],
+        auth: AuthSchema,
+        db: AsyncSession,
+        *,
+        enforce_data_scope: bool = True,
+    ) -> None:
         self.model = model
         self.auth = auth
         self.db = db
+        self.enforce_data_scope = enforce_data_scope
 
     # ── 辅助方法 ──────────────────────────────────────────────────────
 
@@ -318,11 +326,12 @@ class CRUDBase[ModelType: ModelMixin, CreateSchemaType, UpdateSchemaType]:
         if hasattr(self.model, "is_deleted") and not include_deleted:
             conditions.append(getattr(self.model, "is_deleted") == false())
 
-        from app.core.permission import Permission
+        if self.enforce_data_scope:
+            from app.core.permission import Permission
 
-        permission_condition = await Permission(self.model, self.auth, self.db)._permission_condition()
-        if permission_condition is not None:
-            conditions.append(permission_condition)
+            permission_condition = await Permission(self.model, self.auth, self.db)._permission_condition()
+            if permission_condition is not None:
+                conditions.append(permission_condition)
 
         for key, value in kwargs.items():
             if value is None or value == "":

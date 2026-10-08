@@ -237,6 +237,16 @@ class UserOutSchema(CoreUserSchema, BaseSchema, UserBySchema):
     last_login: DateTimeStr | None = Field(default=None, description="最后登录时间")
 
 
+class UserSelectOutSchema(BaseModel):
+    """用户下拉选项响应。"""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int = Field(description="用户ID")
+    username: str = Field(description="用户名")
+    name: str | None = Field(default=None, description="名称")
+
+
 class CurrentUserOutSchema(UserOutSchema):
     """当前用户信息响应（含完整菜单/角色/岗位等嵌套数据）"""
 

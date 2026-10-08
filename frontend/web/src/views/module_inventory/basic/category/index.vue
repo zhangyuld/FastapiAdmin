@@ -516,7 +516,6 @@ onMounted(() => {
               :remove-ids="selectedIds"
               :perm-create="['module_inventory:category:create']"
               :perm-delete="['module_inventory:category:delete']"
-              :perm-patch="['module_inventory:category:patch']"
               :delete-loading="batchDeleting"
               :create-loading="createLoading"
               :more-loading="moreLoading"
@@ -524,9 +523,10 @@ onMounted(() => {
               @delete="handleBatchDelete"
               @more="handleMoreClick"
             />
-            <ElButton @click="toggleExpand" v-ripple>
+            <!--  :perm-patch="['module_inventory:category:patch']" -->
+            <!-- <ElButton @click="toggleExpand" v-ripple>
               {{ isExpanded ? "收起" : "展开" }}
-            </ElButton>
+            </ElButton> -->
           </div>
         </template>
       </FaTableHeader>

@@ -162,7 +162,17 @@ INVENTORY_CATALOG_SPECS: tuple[InventoryCatalogSpec, ...] = (
                 delivered=True,
                 buttons=(("新增", "create"), ("编辑", "update"), ("删除", "delete"), ("状态变更", "patch"), ("详情", "detail")),
             ),
-            InventoryPageSpec("商品管理", "InventoryGoods", "/inventory/basic/goods", "module_inventory/basic/goods/index", "module_inventory:goods:query", "ri:box-3-line", 2),
+            InventoryPageSpec(
+                "商品管理",
+                "InventoryGoods",
+                "/inventory/basic/goods",
+                "module_inventory/basic/goods/index",
+                "module_inventory:goods:query",
+                "ri:box-3-line",
+                2,
+                delivered=True,
+                buttons=(("新增", "create"), ("编辑", "update"), ("删除", "delete"), ("状态变更", "patch"), ("详情", "detail"), ("导出", "export")),
+            ),
             InventoryPageSpec("客户管理", "InventoryCustomer", "/inventory/basic/customer", "module_inventory/basic/customer/index", "module_inventory:customer:query", "ri:user-star-line", 3),
             InventoryPageSpec("供应商管理", "InventorySupplier", "/inventory/basic/supplier", "module_inventory/basic/supplier/index", "module_inventory:supplier:query", "ri:store-2-line", 4),
             InventoryPageSpec("仓库管理", "InventoryWarehouse", "/inventory/basic/warehouse", "module_inventory/basic/warehouse/index", "module_inventory:warehouse:query", "ri:home-gear-line", 5),
@@ -336,7 +346,7 @@ def _create_inventory_page(spec: InventoryPageSpec, parent_id: int) -> MenuModel
     )
 
 
-def _create_inventory_button(name: str, permission: str, order: int, parent_id: int) -> MenuModel:
+def _create_inventory_button(name: str, permission: str, order: int, parent_id: int, page_name: str) -> MenuModel:
     """创建进销存页面按钮权限节点。"""
     return MenuModel(
         name=name,
@@ -355,7 +365,7 @@ def _create_inventory_button(name: str, permission: str, order: int, parent_id: 
         params=None,
         affix=False,
         redirect=None,
-        description="商品分类按钮权限",
+        description=f"{page_name}按钮权限",
         link=None,
         is_iframe=False,
         is_hide_tab=False,
@@ -496,7 +506,7 @@ async def initialize_inventory_business_menus() -> int:
                     permission = f"{permission_prefix}:{action}"
                     button = menus_by_permission.get(permission)
                     if button is None:
-                        button = _create_inventory_button(button_name, permission, order, page.id)
+                        button = _create_inventory_button(button_name, permission, order, page.id, page_spec.name)
                         db.add(button)
                         await db.flush()
                         menus_by_permission[permission] = button

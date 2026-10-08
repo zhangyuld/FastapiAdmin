@@ -22,6 +22,7 @@ from .schema import (
     UserOutSchema,
     UserQueryParam,
     UserRegisterSchema,
+    UserSelectOutSchema,
     UserUpdateSchema,
 )
 from .service import UserService
@@ -106,6 +107,14 @@ async def get_user_list_controller(
         order_by=page.order_by,
     )
     return SuccessResponse(data=result_dict, msg="查询用户成功")
+
+@UserRouter.get("/list/all", summary="查询所有启用用户", response_model=ResponseSchema[list[UserSelectOutSchema]])
+async def get_all_user_list_controller(
+    auth: Annotated[AuthSchema, Security(AuthPermission(["module_system:user:query"]))],
+    db: Annotated[AsyncSession, Depends(db_getter)],
+) -> JSONResponse:
+    result_dict: list[UserSelectOutSchema] = await UserService(auth, db).get_all_list()
+    return SuccessResponse(data=result_dict, msg="查询所有用户成功")
 
 
 @UserRouter.get("/detail/{id}", summary="查询用户详情", response_model=ResponseSchema[UserOutSchema])

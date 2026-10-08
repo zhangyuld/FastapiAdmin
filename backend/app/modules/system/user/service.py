@@ -29,6 +29,7 @@ from .schema import (
     UserOutSchema,
     UserQueryParam,
     UserRegisterSchema,
+    UserSelectOutSchema,
     UserUpdateSchema,
 )
 
@@ -94,6 +95,15 @@ class UserService:
             items.append(item)
         page_result.items = items
         return page_result  # type: ignore[return-value]
+
+    async def get_all_list(self) -> list[UserSelectOutSchema]:
+        """查询全部启用用户，供下拉选择使用。"""
+        user_list = await UserCRUD(self.auth, self.db).get_list(
+            search={"status": 0},
+            order_by=[{"id": "asc"}],
+            load_columns=[UserModel.id, UserModel.username, UserModel.name],
+        )
+        return [UserSelectOutSchema.model_validate(user) for user in user_list]
 
     async def create(self, data: UserCreateSchema) -> UserOutSchema:
         if data.is_superuser:

@@ -169,9 +169,17 @@ export interface ISearchConfig {
   }>;
 }
 
-/**
- * 内容配置接口
- */
+/** 服务端文件导出配置。 */
+export interface ExportBlobOptions {
+  /** 需要导出的字段。 */
+  fields: string[];
+  /** 导出文件格式。 */
+  format: "xlsx" | "csv";
+  /** 工作表名称，仅 Excel 格式使用。 */
+  sheetName: string;
+}
+
+/** 内容配置接口。 */
 export interface IContentConfig<T = any> {
   /** 权限前缀(如sys:user，用于组成权限标识)，不提供则不进行权限校验 */
   permPrefix?: string;
@@ -230,8 +238,8 @@ export interface IContentConfig<T = any> {
   exportAction?: (queryParams: T) => Promise<any>;
   /** 前端全量导出的网络请求函数(需返回promise) */
   exportsAction?: (queryParams: T) => Promise<IObject[]>;
-  /** 服务端导出 Excel 二进制（与 exportsAction 二选一用于「全量远程」导出） */
-  exportsBlobAction?: (queryParams: T) => Promise<Blob>;
+  /** 服务端导出文件二进制（与 exportsAction 二选一用于「全量远程」导出） */
+  exportsBlobAction?: (queryParams: T, options?: ExportBlobOptions) => Promise<Blob>;
   /** 导入模板 */
   importTemplate?: string | (() => Promise<any>);
   /** 后端导入的网络请求函数(需返回promise) */

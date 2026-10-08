@@ -1,4 +1,5 @@
 import asyncio
+import csv
 import io
 from typing import Any
 
@@ -102,7 +103,7 @@ class ExcelUtil:
         return buffer.getvalue()
 
     @classmethod
-    def export_list2excel(cls, list_data: list[dict[str, Any]], mapping_dict: dict) -> bytes:
+    def export_list2excel(cls, list_data: list[dict[str, Any]], mapping_dict: dict, sheet_name: str = "Sheet") -> bytes:
         """将列表数据导出为 Excel 文件。
 
         参数:
@@ -126,6 +127,7 @@ class ExcelUtil:
         ws = wb.active
         if not ws:
             raise ValueError("不存在活动工作表")
+        ws.title = sheet_name
 
         for col_num, header in enumerate(headers, 1):
             ws.cell(row=1, column=col_num, value=header)
@@ -140,10 +142,27 @@ class ExcelUtil:
         return buffer.getvalue()
 
     @classmethod
-    async def aexport_list2excel(cls, list_data: list[dict[str, Any]], mapping_dict: dict) -> bytes:
+    async def aexport_list2excel(cls, list_data: list[dict[str, Any]], mapping_dict: dict, sheet_name: str = "Sheet") -> bytes:
         """export_list2excel 的异步版本：构建与序列化在线程池中执行。
 
         导出最多 10 万行，逐单元格写入 + ZIP 压缩为纯同步 CPU 操作，
         千行以上即会明显卡住事件循环，async 调用点必须使用本方法。
         """
-        return await asyncio.to_thread(cls.export_list2excel, list_data, mapping_dict)
+        return await asyncio.to_thread(cls.export_list2excel, list_data, mapping_dict, sheet_name)
+
+    @classmethod
+    def export_list2csv(cls, list_data: list[dict[str, Any]], mapping_dict: dict) -> bytes:
+        """将列表数据导出为带 UTF-8 BOM 的 CSV 文件。"""
+        max_rows = 100000
+        mapping_data = cls.__mapping_list(list_data[:max_rows], mapping_dict)
+        headers = list(mapping_dict.values())
+        buffer = io.StringIO(newline="")
+        writer = csv.DictWriter(buffer, fieldnames=headers, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(mapping_data)
+        return buffer.getvalue().encode("utf-8-sig")
+
+    @classmethod
+    async def aexport_list2csv(cls, list_data: list[dict[str, Any]], mapping_dict: dict) -> bytes:
+        """export_list2csv 的异步版本。"""
+        return await asyncio.to_thread(cls.export_list2csv, list_data, mapping_dict)

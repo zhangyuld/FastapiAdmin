@@ -16,16 +16,7 @@
       include-audit
       @search="handleSearchBarSearch"
       @reset="onResetSearch"
-    >
-      <template #created_id>
-        <FaUserTableSelect
-          :model-value="searchForm.created_id == null ? undefined : searchForm.created_id"
-          @update:model-value="(v: number | undefined) => (searchForm.created_id = v)"
-          @confirm-click="afterUserSelectSearch"
-          @clear-click="afterUserSelectSearch"
-        />
-      </template>
-    </FaSearchBar>
+    />
 
     <ElCard class="fa-table-card" :style="{ 'margin-top': showSearchBar ? '12px' : '0' }">
       <FaTableHeader
@@ -470,17 +461,6 @@ async function handleSearchBarSearch(params: NoticeSearchForm) {
   await searchBarRef.value?.validate?.();
   replaceSearchParams(buildNoticeReplaceParams(params));
   await getData();
-}
-
-async function applyNoticeSearchFromForm() {
-  await searchBarRef.value?.validate?.();
-  replaceSearchParams(buildNoticeReplaceParams(searchForm.value));
-  await getData();
-}
-
-async function afterUserSelectSearch() {
-  await nextTick();
-  await applyNoticeSearchFromForm();
 }
 
 async function onResetSearch() {

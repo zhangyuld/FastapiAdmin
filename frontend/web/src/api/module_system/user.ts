@@ -3,6 +3,13 @@ import { type MenuTable, type MenuForm } from "@/api/module_system/menu";
 
 const API_PATH = "/system/user";
 
+/** 用户下拉选项 */
+export interface UserSelectOption {
+  id: number;
+  username: string;
+  name?: string;
+}
+
 export const UserAPI = {
   getCurrentUserInfo(checkDataScope?: boolean) {
     return request<ApiResponse<UserInfo>>({
@@ -66,6 +73,14 @@ export const UserAPI = {
       url: `${API_PATH}/list`,
       method: "get",
       params: query,
+    });
+  },
+
+  /** 查询全部启用用户，供用户下拉选择使用 */
+  listAllUser() {
+    return request<ApiResponse<UserSelectOption[]>>({
+      url: `${API_PATH}/list/all`,
+      method: "get",
     });
   },
 

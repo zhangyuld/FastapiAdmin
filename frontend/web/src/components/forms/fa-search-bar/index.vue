@@ -30,33 +30,45 @@
             </template>
             <!-- 创建人插槽 -->
             <template v-if="item.key === 'created_id' && !$slots.created_id">
-              <div class="w-full min-w-0">
-                <FaUserTableSelect
-                  :model-value="modelValue?.created_id == null ? undefined : modelValue.created_id"
-                  @update:model-value="
-                    (v: number | undefined) => {
-                      modelValue['created_id'] = v;
-                    }
-                  "
-                  @confirm-click="emitImmediateSearch"
-                  @clear-click="emitImmediateSearch"
+              <ElSelect
+                class="w-full"
+                :model-value="modelValue?.created_id == null ? undefined : modelValue.created_id"
+                :loading="auditUserLoading"
+                placeholder="请选择创建人"
+                clearable
+                filterable
+                @update:model-value="setFieldValue('created_id', $event)"
+                @change="emitImmediateSearch"
+                @visible-change="handleAuditUserDropdownVisible"
+              >
+                <ElOption
+                  v-for="option in auditUserOptions"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
                 />
-              </div>
+              </ElSelect>
             </template>
             <!-- 更新人插槽 -->
             <template v-else-if="item.key === 'updated_id' && !$slots.updated_id">
-              <div class="w-full min-w-0">
-                <FaUserTableSelect
-                  :model-value="modelValue?.updated_id == null ? undefined : modelValue.updated_id"
-                  @update:model-value="
-                    (v: number | undefined) => {
-                      modelValue['updated_id'] = v;
-                    }
-                  "
-                  @confirm-click="emitImmediateSearch"
-                  @clear-click="emitImmediateSearch"
+              <ElSelect
+                class="w-full"
+                :model-value="modelValue?.updated_id == null ? undefined : modelValue.updated_id"
+                :loading="auditUserLoading"
+                placeholder="请选择更新人"
+                clearable
+                filterable
+                @update:model-value="setFieldValue('updated_id', $event)"
+                @change="emitImmediateSearch"
+                @visible-change="handleAuditUserDropdownVisible"
+              >
+                <ElOption
+                  v-for="option in auditUserOptions"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
                 />
-              </div>
+              </ElSelect>
             </template>
             <template v-else>
               <slot :name="item.key" :item="item" :modelValue="modelValue">
@@ -161,8 +173,8 @@ import { ArrowUpBold, ArrowDownBold, Refresh, Search } from "@element-plus/icons
 import { useWindowSize, onKeyStroke } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
 import { type Component } from "vue";
+import UserAPI, { type UserSelectOption } from "@/api/module_system/user";
 import FaDatePicker from "@/components/forms/fa-search-bar/FaDatePicker.vue";
-import FaUserTableSelect from "./FaUserTableSelect.vue";
 import {
   getAuditSearchFormItems,
   type GetAuditSearchFormItemsOptions,
@@ -182,6 +194,7 @@ import {
   ElTimePicker,
   ElTimeSelect,
   ElTreeSelect,
+  ElMessage,
   type FormInstance,
 } from "element-plus";
 import {
@@ -325,8 +338,60 @@ const emit = defineEmits<Emits>();
 const modelValue = defineModel<Record<string, any>>({ default: {} });
 const initialModelValue = ref<Record<string, any>>({});
 
+interface AuditUserOption {
+  label: string;
+  value: number;
+}
+
+const auditUserOptions = ref<AuditUserOption[]>([]);
+const auditUserLoading = ref(false);
+const auditUsersLoaded = ref(false);
+
+/** 将用户信息转换为审计字段下拉选项 */
+const formatAuditUserOption = (user: UserSelectOption): AuditUserOption => ({
+  value: user.id,
+  label: [user.username, user.name].filter(Boolean).join(" - "),
+});
+
+/** 加载创建人、更新人共用的启用用户列表 */
+const loadAuditUsers = async () => {
+  if (auditUserLoading.value || auditUsersLoaded.value) return;
+
+  auditUserLoading.value = true;
+  try {
+    const response = await UserAPI.listAllUser();
+    auditUserOptions.value = response.data.data.map(formatAuditUserOption);
+    auditUsersLoaded.value = true;
+  } catch {
+    auditUserOptions.value = [];
+    ElMessage.error("用户列表加载失败");
+  } finally {
+    auditUserLoading.value = false;
+  }
+};
+
+/** 下拉展开时重试未成功的用户列表请求 */
+const handleAuditUserDropdownVisible = (visible: boolean) => {
+  if (visible) void loadAuditUsers();
+};
+
 // 审计字段配置
 const auditItems = computed(() => getAuditSearchFormItems(props.auditItemOptions));
+
+const shouldLoadAuditUsers = computed(
+  () =>
+    props.includeAudit &&
+    (props.auditItemOptions?.showCreatedBy !== false ||
+      props.auditItemOptions?.showUpdatedBy !== false)
+);
+
+watch(
+  shouldLoadAuditUsers,
+  (shouldLoad) => {
+    if (shouldLoad) void loadAuditUsers();
+  },
+  { immediate: true }
+);
 
 // 合并业务字段和审计字段
 const mergedItems = computed(() => {

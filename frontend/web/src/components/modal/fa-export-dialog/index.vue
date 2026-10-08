@@ -73,7 +73,7 @@
 
 <script setup lang="ts">
 import ExcelJS from "exceljs";
-import type { IContentConfig, IObject } from "@/components/modal/types";
+import type { ExportBlobOptions, IContentConfig, IObject } from "@/components/modal/types";
 import { useThrottleFn } from "@vueuse/core";
 import { ElMessage } from "element-plus";
 import type { FormInstance, FormRules } from "element-plus";
@@ -251,7 +251,12 @@ async function handleExports(): Promise<{ count: number }> {
   if (exportsFormData.origin === ExportsOriginEnum.REMOTE) {
     const lastFormData = props.queryParams ?? {};
     if (props.contentConfig.exportsBlobAction) {
-      const blob = await props.contentConfig.exportsBlobAction(lastFormData);
+      const exportOptions: ExportBlobOptions = {
+        fields: [...exportsFormData.fields],
+        format: exportsFormData.format,
+        sheetName: exportsFormData.sheetname || "sheet",
+      };
+      const blob = await props.contentConfig.exportsBlobAction(lastFormData, exportOptions);
       saveBlobDownload(blob, filename as string, exportsFormData.format);
       ElMessage.success("导出成功！");
       return { count: 0 };

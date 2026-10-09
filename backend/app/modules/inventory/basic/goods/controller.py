@@ -1,4 +1,5 @@
 from typing import Annotated
+from urllib.parse import quote
 
 from fastapi import APIRouter, Body, Depends, Path, Query, Security, status
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -77,8 +78,12 @@ async def export_goods_controller(
 ) -> StreamingResponse:
     result = await GoodsService(auth, db).export(data=data)
     media_type = "text/csv; charset=utf-8" if data.format == "csv" else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    filename = data.get_download_filename()
     return StreamResponse(
         data=bytes2file_response(result),
         media_type=media_type,
-        headers={"Content-Disposition": f"attachment; filename=goods.{data.format}"},
+        headers={"Content-Disposition": (
+            f"attachment; filename=goods.{data.format}"
+            f"filename*=UTF-8''{quote(filename)}"
+        )},
     )

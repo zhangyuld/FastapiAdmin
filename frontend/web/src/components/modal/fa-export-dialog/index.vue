@@ -82,6 +82,7 @@ import { nextTick, reactive, computed } from "vue";
 
 defineOptions({ name: "FaExportDialog", inheritAttrs: false });
 
+/** 下载二进制导出文件。 */
 function saveBlobDownload(blob: Blob, rawName: string, format: string = "xlsx") {
   const ext = format === "csv" ? ".csv" : ".xlsx";
   const name = new RegExp(`\\.${ext.replace(".", "")}$`, "i").test(rawName)
@@ -102,7 +103,11 @@ interface Props {
   /** 内容配置 */
   contentConfig: Pick<
     IContentConfig,
-    "permPrefix" | "cols" | "exportsAction" | "exportsBlobAction"
+    | "permPrefix"
+    | "defaultExportFileName"
+    | "cols"
+    | "exportsAction"
+    | "exportsBlobAction"
   >;
   /** 查询参数 */
   queryParams?: IObject;
@@ -228,12 +233,29 @@ async function workbookToCsv(
   return new Blob([content], { type: "text/csv;charset=utf-8" });
 }
 
+/** 格式化导出文件名使用的本地时间戳。 */
+function formatExportTimestamp(date: Date = new Date()): string {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}_${pad(
+    date.getHours()
+  )}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+}
+
+/** 根据输入名称、模块默认名称和导出格式生成最终文件名。 */
+function resolveExportFileName(): string {
+  const format = exportsFormData.format;
+  const inputName = exportsFormData.filename.trim();
+  const defaultName = props.contentConfig.defaultExportFileName
+    ? `${props.contentConfig.defaultExportFileName}_${formatExportTimestamp()}`
+    : props.contentConfig.permPrefix || "export";
+  const baseName = (inputName || defaultName).replace(/\.(xlsx|csv)$/i, "");
+  return `${baseName}.${format}`;
+}
+
 // 导出
 async function handleExports(): Promise<{ count: number }> {
   ElMessage.info("正在导出数据，请稍候...");
-  const filename = exportsFormData.filename
-    ? exportsFormData.filename
-    : props.contentConfig.permPrefix || "export";
+  const filename = resolveExportFileName();
   const sheetname = exportsFormData.sheetname ? exportsFormData.sheetname : "sheet";
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet(sheetname);
@@ -252,6 +274,7 @@ async function handleExports(): Promise<{ count: number }> {
     const lastFormData = props.queryParams ?? {};
     if (props.contentConfig.exportsBlobAction) {
       const exportOptions: ExportBlobOptions = {
+        fileName: filename,
         fields: [...exportsFormData.fields],
         format: exportsFormData.format,
         sheetName: exportsFormData.sheetname || "sheet",

@@ -327,6 +327,7 @@ function normalizeGoodsExportFields(fields: string[]): GoodsExportField[] {
 
 const goodsExportContentConfig = computed(() => ({
   permPrefix: "module_inventory:goods",
+  defaultExportFileName: "商品列表",
   cols: goodsExportCols.value,
   exportsBlobAction: async (params: IObject, options?: ExportBlobOptions) => {
     const response = await GoodsAPI.exportGoods({

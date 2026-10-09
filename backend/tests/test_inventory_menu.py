@@ -39,7 +39,7 @@ def test_only_delivered_inventory_pages_are_enabled() -> None:
     menus = _load_menu_seed()
     catalogs = [menu for menu in menus if menu.get("route_name") in EXPECTED_CATALOGS]
     pages = [page for catalog in catalogs for page in catalog["children"]]
-    delivered_names = {"InventoryGoodsCategory", "InventoryGoods"}
+    delivered_names = {"InventoryGoodsCategory", "InventoryGoods", "InventoryCustomer"}
 
     assert len(pages) == 19
     assert len({page["route_name"] for page in pages}) == 19

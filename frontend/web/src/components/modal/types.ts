@@ -171,6 +171,8 @@ export interface ISearchConfig {
 
 /** 服务端文件导出配置。 */
 export interface ExportBlobOptions {
+  /** 最终导出文件名，包含文件扩展名。 */
+  fileName: string;
   /** 需要导出的字段。 */
   fields: string[];
   /** 导出文件格式。 */
@@ -183,6 +185,8 @@ export interface ExportBlobOptions {
 export interface IContentConfig<T = any> {
   /** 权限前缀(如sys:user，用于组成权限标识)，不提供则不进行权限校验 */
   permPrefix?: string;
+  /** 文件名为空时使用的导出文件名前缀。 */
+  defaultExportFileName?: string;
   /** table组件属性（用 IObject 避免与 el-table TableProps.context 等内部类型不兼容） */
   table?: IObject;
   /** 页面标题与提示（用于卡片头部显示） */

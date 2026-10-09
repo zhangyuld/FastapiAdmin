@@ -1,3 +1,5 @@
+import re
+from datetime import datetime
 from decimal import Decimal
 from typing import Literal, Self
 
@@ -126,6 +128,7 @@ class GoodsExportSchema(BaseModel):
     fields: list[GoodsExportField] = Field(default_factory=lambda: list(DEFAULT_GOODS_EXPORT_FIELDS), min_length=1, description="导出字段")
     format: Literal["xlsx", "csv"] = Field(default="xlsx", description="导出格式")
     sheet_name: str = Field(default="商品档案", max_length=31, description="工作表名称")
+    filename: str | None = Field(default=None, max_length=200, description="导出文件名")
 
     @field_validator("fields")
     @classmethod
@@ -141,3 +144,21 @@ class GoodsExportSchema(BaseModel):
         if any(char in result for char in "[]:*?/\\"):
             raise ValueError("工作表名称不能包含 []:*?/\\")
         return result
+
+    @field_validator("filename")
+    @classmethod
+    def validate_filename(cls, value: str | None) -> str | None:
+        """清理导出文件名并拒绝路径或系统非法字符。"""
+        if value is None or not value.strip():
+            return None
+        result = re.sub(r"\.(xlsx|csv)$", "", value.strip(), flags=re.IGNORECASE)
+        if not result:
+            raise ValueError("导出文件名不能为空")
+        if any(ord(char) < 32 or char in '<>:"/\\|?*' for char in result):
+            raise ValueError('导出文件名不能包含 <>:"/\\|?* 或控制字符')
+        return result
+
+    def get_download_filename(self) -> str:
+        """生成包含格式扩展名的最终下载文件名。"""
+        base_name = self.filename or f"客户列表_{datetime.now():%Y%m%d_%H%M%S}"
+        return f"{base_name}.{self.format}"

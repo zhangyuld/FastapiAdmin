@@ -29,6 +29,7 @@ from app.modules.task.storage.node.controller import StorageNodeRouter
 from app.modules.task.storage.transfer.controller import StorageTransferRouter
 from app.modules.task.storage.workflow.controller import StorageWorkflowRouter
 from app.modules.inventory.basic.goods.controller import GoodsRouter
+from app.modules.inventory.basic.customer.controller import CustomerRouter
 
 # 域前缀 → 该域 controller 清单（唯一路由事实来源）
 DOMAIN_CONTROLLERS: dict[str, list[APIRouter]] = {
@@ -61,7 +62,7 @@ DOMAIN_CONTROLLERS: dict[str, list[APIRouter]] = {
         StorageWorkflowRouter,
     ],
     "/ai": [ChatRouter],
-    "/inventory/basic": [GoodsCategoryRouter, GoodsRouter],
+    "/inventory/basic": [GoodsCategoryRouter, GoodsRouter, CustomerRouter],
     "/generator": [GenRouter],
     "/common": [FileRouter],
 }

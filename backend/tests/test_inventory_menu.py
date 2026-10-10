@@ -39,7 +39,7 @@ def test_only_delivered_inventory_pages_are_enabled() -> None:
     menus = _load_menu_seed()
     catalogs = [menu for menu in menus if menu.get("route_name") in EXPECTED_CATALOGS]
     pages = [page for catalog in catalogs for page in catalog["children"]]
-    delivered_names = {"InventoryGoodsCategory", "InventoryGoods", "InventoryCustomer"}
+    delivered_names = {"InventoryGoodsCategory", "InventoryGoods", "InventoryCustomer", "InventorySupplier", "InventoryWarehouse"}
 
     assert len(pages) == 19
     assert len({page["route_name"] for page in pages}) == 19
@@ -95,3 +95,50 @@ def test_goods_button_permissions() -> None:
     assert len(goods["children"]) == len(permissions) == 6
     assert [button["order"] for button in goods["children"]] == [1, 2, 3, 4, 5, 6]
     assert all(button["type"] == 3 and button["status"] == 0 for button in goods["children"])
+
+def test_customer_button_permissions() -> None:
+    """客户管理页面已启用并包含完整、有序且唯一的按钮权限。"""
+    menus = _load_menu_seed()
+    basic = next(menu for menu in menus if menu.get("route_name") == "InventoryBasic")
+    customer = next(page for page in basic["children"] if page.get("route_name") == "InventoryCustomer")
+
+    assert customer["status"] == 0
+    assert customer["order"] == 3
+    assert customer["description"] == "进销存已交付菜单"
+
+    permissions = {button["permission"] for button in customer["children"]}
+    assert permissions == {
+        "module_inventory:customer:create",
+        "module_inventory:customer:update",
+        "module_inventory:customer:delete",
+        "module_inventory:customer:patch",
+        "module_inventory:customer:detail",
+        "module_inventory:customer:export",
+    }
+    assert len(customer["children"]) == len(permissions) == 6
+    assert [button["order"] for button in customer["children"]] == [1, 2, 3, 4, 5, 6]
+    assert all(button["type"] == 3 and button["status"] == 0 for button in customer["children"])
+
+
+def test_supplier_button_permissions() -> None:
+    """供应商管理页面已启用并包含完整、有序且唯一的按钮权限。"""
+    menus = _load_menu_seed()
+    basic = next(menu for menu in menus if menu.get("route_name") == "InventoryBasic")
+    supplier = next(page for page in basic["children"] if page.get("route_name") == "InventorySupplier")
+
+    assert supplier["status"] == 0
+    assert supplier["order"] == 4
+    assert supplier["description"] == "进销存已交付菜单"
+
+    permissions = {button["permission"] for button in supplier["children"]}
+    assert permissions == {
+        "module_inventory:supplier:create",
+        "module_inventory:supplier:update",
+        "module_inventory:supplier:delete",
+        "module_inventory:supplier:patch",
+        "module_inventory:supplier:detail",
+        "module_inventory:supplier:export",
+    }
+    assert len(supplier["children"]) == len(permissions) == 6
+    assert [button["order"] for button in supplier["children"]] == [1, 2, 3, 4, 5, 6]
+    assert all(button["type"] == 3 and button["status"] == 0 for button in supplier["children"])

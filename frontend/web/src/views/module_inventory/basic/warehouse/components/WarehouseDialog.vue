@@ -80,7 +80,12 @@ const formItems = computed<FormItem[]>(() => [
     key: "warehouse_code",
     type: "input",
     span: 12,
-    props: { placeholder: "请输入仓库编码", maxlength: 64, showWordLimit: true },
+    props: {
+      placeholder: "请输入仓库编码",
+      maxlength: 64,
+      showWordLimit: true,
+      disabled: props.mode === "update",
+    },
   },
   {
     label: "仓库名称",

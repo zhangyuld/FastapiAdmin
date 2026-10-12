@@ -1,11 +1,17 @@
 """v1 路由总表"""
 
+from importlib import import_module
+
 from fastapi import APIRouter
 
 from app.modules.ai.chat.controller import ChatRouter
 from app.modules.common.file.controller import FileRouter
 from app.modules.generator.gencode.controller import GenRouter
 from app.modules.inventory.basic.category.controller import GoodsCategoryRouter
+from app.modules.inventory.basic.customer.controller import CustomerRouter
+from app.modules.inventory.basic.goods.controller import GoodsRouter
+from app.modules.inventory.basic.supplier.controller import SupplierRouter
+from app.modules.inventory.basic.warehouse.controller import WarehouseRouter
 from app.modules.monitor.cache.controller import CacheRouter
 from app.modules.monitor.health.controller import HealthRouter
 from app.modules.monitor.online.controller import OnlineRouter
@@ -28,10 +34,10 @@ from app.modules.task.storage.browse.controller import StorageBrowseRouter
 from app.modules.task.storage.node.controller import StorageNodeRouter
 from app.modules.task.storage.transfer.controller import StorageTransferRouter
 from app.modules.task.storage.workflow.controller import StorageWorkflowRouter
-from app.modules.inventory.basic.goods.controller import GoodsRouter
-from app.modules.inventory.basic.customer.controller import CustomerRouter
-from app.modules.inventory.basic.supplier.controller import SupplierRouter
-from app.modules.inventory.basic.warehouse.controller import WarehouseRouter
+
+# in 为 Python 关键字，保留前端同名目录时通过模块路径加载控制器。
+PurchaseInRouter = import_module("app.modules.inventory.purchase.in.controller").PurchaseInRouter
+PurchaseReturnRouter = import_module("app.modules.inventory.purchase.return.controller").PurchaseReturnRouter
 
 # 域前缀 → 该域 controller 清单（唯一路由事实来源）
 DOMAIN_CONTROLLERS: dict[str, list[APIRouter]] = {
@@ -65,6 +71,7 @@ DOMAIN_CONTROLLERS: dict[str, list[APIRouter]] = {
     ],
     "/ai": [ChatRouter],
     "/inventory/basic": [GoodsCategoryRouter, GoodsRouter, CustomerRouter, SupplierRouter, WarehouseRouter],
+    "/inventory/purchase": [PurchaseInRouter, PurchaseReturnRouter],
     "/generator": [GenRouter],
     "/common": [FileRouter],
 }

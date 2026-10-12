@@ -216,9 +216,15 @@ INVENTORY_CATALOG_SPECS: tuple[InventoryCatalogSpec, ...] = (
         order=3,
         redirect="/inventory/purchase/in",
         pages=(
-            InventoryPageSpec("采购入库", "InventoryPurchaseIn", "/inventory/purchase/in", "module_inventory/purchase/in/index", "module_inventory:purchase_in:query", "ri:inbox-archive-line", 1),
             InventoryPageSpec(
-                "采购退货", "InventoryPurchaseReturn", "/inventory/purchase/return", "module_inventory/purchase/return/index", "module_inventory:purchase_return:query", "ri:arrow-go-back-line", 2
+                "采购入库", "InventoryPurchaseIn", "/inventory/purchase/in", "module_inventory/purchase/in/index", "module_inventory:purchase_in:query", "ri:inbox-archive-line", 1,
+                delivered=True,
+                buttons=(("新增", "create"), ("编辑", "update"), ("详情", "detail"), ("删除", "delete"), ("确认", "confirm"), ("作废", "void"), ("导出", "export")),
+            ),
+            InventoryPageSpec(
+                "采购退货", "InventoryPurchaseReturn", "/inventory/purchase/return", "module_inventory/purchase/return/index", "module_inventory:purchase_return:query", "ri:arrow-go-back-line", 2,
+                delivered=True,
+                buttons=(("新增", "create"), ("编辑", "update"), ("详情", "detail"), ("删除", "delete"), ("确认", "confirm"), ("作废", "void"), ("导出", "export")),
             ),
         ),
     ),

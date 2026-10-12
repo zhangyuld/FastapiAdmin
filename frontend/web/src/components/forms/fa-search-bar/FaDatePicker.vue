@@ -12,6 +12,7 @@
       :shortcuts="isRangeType ? shortcuts : undefined"
       v-bind="$attrs"
       @update:model-value="(val) => emit('update:model-value', val)"
+      style="width: 100%"
     />
   </div>
 </template>

@@ -35,11 +35,11 @@ def test_inventory_catalog_contract() -> None:
 
 
 def test_only_delivered_inventory_pages_are_enabled() -> None:
-    """仅已交付的商品分类和商品管理页面启用。"""
+    """仅已交付的基础档案和采购页面启用。"""
     menus = _load_menu_seed()
     catalogs = [menu for menu in menus if menu.get("route_name") in EXPECTED_CATALOGS]
     pages = [page for catalog in catalogs for page in catalog["children"]]
-    delivered_names = {"InventoryGoodsCategory", "InventoryGoods", "InventoryCustomer", "InventorySupplier", "InventoryWarehouse"}
+    delivered_names = {"InventoryGoodsCategory", "InventoryGoods", "InventoryCustomer", "InventorySupplier", "InventoryWarehouse", "InventoryPurchaseIn", "InventoryPurchaseReturn"}
 
     assert len(pages) == 19
     assert len({page["route_name"] for page in pages}) == 19
@@ -54,6 +54,19 @@ def test_only_delivered_inventory_pages_are_enabled() -> None:
     assert all(page["route_path"].startswith("/inventory/") for page in pages)
     assert all(page["component_path"].startswith("module_inventory/") for page in pages)
     assert all(page["permission"].endswith(":query") for page in pages)
+
+
+def test_purchase_button_permissions() -> None:
+    """采购页面包含完整、有序且唯一的单据操作权限。"""
+    menus = _load_menu_seed()
+    purchase = next(menu for menu in menus if menu.get("route_name") == "InventoryPurchase")
+    actions = ["create", "update", "detail", "delete", "confirm", "void", "export"]
+    for page in purchase["children"]:
+        prefix = page["permission"].removesuffix(":query")
+        assert page["status"] == 0
+        assert [button["permission"] for button in page["children"]] == [f"{prefix}:{action}" for action in actions]
+        assert [button["order"] for button in page["children"]] == list(range(1, 8))
+        assert all(button["type"] == 3 and button["status"] == 0 for button in page["children"])
 
 
 def test_goods_category_button_permissions() -> None:

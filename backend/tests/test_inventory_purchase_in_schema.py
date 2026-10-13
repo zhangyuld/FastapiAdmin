@@ -2,7 +2,6 @@ import json
 import re
 from datetime import date, datetime
 from decimal import Decimal
-from importlib import import_module
 from types import SimpleNamespace
 from typing import Annotated, Any
 
@@ -11,10 +10,9 @@ from fastapi import FastAPI, Query
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
+# 验证采购入库序列化及真实 HTTP 查询绑定。
+from app.modules.inventory.purchase.inbound import schema as schema
 from app.utils.common_util import search_to_dict
-
-# in 为 Python 关键字，通过模块路径加载，业务模块内部仍可使用相对导入。
-schema = import_module("app.modules.inventory.purchase.in.schema")
 
 
 @pytest.fixture

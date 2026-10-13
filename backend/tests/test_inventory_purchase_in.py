@@ -5,7 +5,6 @@ from collections.abc import Generator
 from copy import deepcopy
 from datetime import UTC, date, datetime
 from decimal import Decimal
-from importlib import import_module
 from io import BytesIO, StringIO
 from typing import Any
 from unittest.mock import AsyncMock, patch
@@ -26,14 +25,14 @@ from app.modules.inventory.common.business_log import BusinessLogService
 from app.modules.inventory.common.model import BusinessLogModel
 from app.modules.inventory.finance.model import FundAllocationModel, FundTransactionModel, PayableModel
 from app.modules.inventory.finance.payable import PayableService
+from app.modules.inventory.purchase.inbound import crud as crud_module
+from app.modules.inventory.purchase.inbound import service as service_module
 from app.modules.inventory.purchase.model import PurchaseInItemModel, PurchaseInModel, PurchaseReturnItemModel, PurchaseReturnModel
 from app.modules.inventory.stock.model import StockBalanceModel, StockLogModel
 from app.modules.inventory.stock.posting import StockPostingService
 from app.modules.system.user.model import UserModel
 
-crud_module = import_module("app.modules.inventory.purchase.in.crud")
-service_module = import_module("app.modules.inventory.purchase.in.service")
-BASE = "/inventory/purchase/in"
+BASE = "/inventory/purchase/inbound"
 
 
 @pytest.fixture(scope="session", autouse=True)

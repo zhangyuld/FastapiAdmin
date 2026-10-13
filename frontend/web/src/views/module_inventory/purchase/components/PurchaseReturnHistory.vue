@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import PurchaseInAPI from "@/api/module_inventory/purchase/in";
-import type {
-  PurchaseReturnSummary,
-  RelatedPurchaseReturn,
-} from "@/api/module_inventory/purchase/types";
+import type { PurchaseReturnSummary } from "@/api/module_inventory/purchase/client";
+import type { RelatedPurchaseReturn } from "@/api/module_inventory/purchase/in";
 import type { ColumnOption } from "@/types/component";
 import { Refresh } from "@element-plus/icons-vue";
 

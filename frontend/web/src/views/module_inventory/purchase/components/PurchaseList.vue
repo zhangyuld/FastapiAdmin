@@ -5,7 +5,7 @@ import type {
   PurchaseDocument,
   PurchaseKind,
   PurchaseQuery,
-} from "@/api/module_inventory/purchase/types";
+} from "@/api/module_inventory/purchase/client";
 import type { SearchFormItem } from "@/components/forms/fa-search-bar/index.vue";
 import type { DialogType } from "@/hooks/core/useCrudDialog";
 import type { ExportBlobOptions, IObject } from "@/components/modal/types";

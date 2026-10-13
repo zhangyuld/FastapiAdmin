@@ -2,7 +2,6 @@ import csv
 import re
 from copy import deepcopy
 from decimal import Decimal
-from importlib import import_module
 from io import BytesIO, StringIO
 from typing import Any
 from urllib.parse import unquote
@@ -25,6 +24,7 @@ from app.modules.inventory.common.model import BusinessLogModel
 from app.modules.inventory.finance.model import PayableModel
 from app.modules.inventory.finance.payable import PayableService
 from app.modules.inventory.purchase.model import PurchaseInModel, PurchaseReturnItemModel, PurchaseReturnModel
+from app.modules.inventory.purchase.return_order import crud as crud_module
 from app.modules.inventory.stock.model import StockBalanceModel, StockLogModel
 from app.modules.inventory.stock.posting import StockPostingService
 from app.modules.system.user.model import UserModel
@@ -32,9 +32,8 @@ from app.modules.system.user.model import UserModel
 # 复用入库测试的档案准备，不修改全局 conftest 或开发数据库。
 purchase_body = _purchase_body_fixture
 
-BASE = "/inventory/purchase/return"
-IN_BASE = "/inventory/purchase/in"
-crud_module = import_module("app.modules.inventory.purchase.return.crud")
+BASE = "/inventory/purchase/return_order"
+IN_BASE = "/inventory/purchase/inbound"
 
 
 @pytest.fixture

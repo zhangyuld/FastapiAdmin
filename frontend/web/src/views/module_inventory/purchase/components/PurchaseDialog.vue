@@ -9,7 +9,7 @@ import type {
   PurchaseDocument,
   PurchaseLine,
   PurchaseSaveBody,
-} from "@/api/module_inventory/purchase/types";
+} from "@/api/module_inventory/purchase/client";
 import type { DialogType } from "@/hooks/core/useCrudDialog";
 import { usePurchaseOptions } from "../composables/usePurchaseOptions";
 import { scaledDecimal, decimalText, totalAmount } from "../utils/amount";

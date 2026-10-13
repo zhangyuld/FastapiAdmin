@@ -27,7 +27,7 @@ from .schema import (
 )
 from .service import PurchaseInService
 
-PurchaseInRouter = APIRouter(route_class=OperationLogRoute, prefix="/in", tags=["采购入库"])
+PurchaseInRouter = APIRouter(route_class=OperationLogRoute, prefix="/inbound", tags=["采购入库"])
 
 
 @PurchaseInRouter.get("/returns/{id}", summary="分页查询入库关联退货", response_model=ResponseSchema[PageResultSchema[PurchaseInRelatedReturnOutSchema]])

@@ -27,6 +27,15 @@ class StockPostingLine:
     reversal_log_id: int | None = None
 
 
+@dataclass(frozen=True)
+class StockOutLine:
+    """销售出库数量输入，成本只从已锁定库存余额计算。"""
+
+    goods_id: int
+    business_item_id: int
+    quantity: Decimal
+
+
 class StockPostingService:
     """进销存模块内部库存记账，复用请求事务，不单独提交。"""
 
@@ -34,6 +43,41 @@ class StockPostingService:
         """绑定审计用户及业务会话。"""
         self.auth = auth
         self.db = db
+
+    async def post_sale_out(
+        self,
+        *,
+        warehouse_id: int,
+        business_id: int,
+        business_no: str,
+        business_date: date,
+        posted_time: datetime,
+        lines: Sequence[StockOutLine],
+        remark: str | None = None,
+    ) -> dict[int, tuple[Decimal, Decimal]]:
+        """顺序锁定余额后固化移动平均成本，全部出库时结清库存金额尾差。"""
+        if not lines or len({line.goods_id for line in lines}) != len(lines):
+            raise CustomException(msg="销售明细为空或包含重复商品", status_code=409)
+        postings: list[StockPostingLine] = []
+        costs: dict[int, tuple[Decimal, Decimal]] = {}
+        for line in sorted(lines, key=lambda item: item.goods_id):
+            balance = await self._lock_balance(warehouse_id, line.goods_id, create=False)
+            if line.quantity <= 0 or line.quantity > balance.quantity:
+                raise CustomException(msg=f"商品库存不足，无法出库：{line.goods_id}", status_code=409)
+            with localcontext() as context:
+                context.prec = 40
+                unit_cost = (balance.stock_amount / balance.quantity).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
+                cost = balance.stock_amount if line.quantity == balance.quantity else (balance.stock_amount * line.quantity / balance.quantity).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                if cost < 0 or cost > balance.stock_amount or unit_cost > Decimal("99999999999999.9999"):
+                    raise CustomException(msg="库存成本异常，不能确认销售出库", status_code=409)
+            costs[line.business_item_id] = (unit_cost, cost)
+            postings.append(StockPostingLine(line.goods_id, line.business_item_id, -line.quantity, unit_cost, -cost))
+        await self.post(
+            warehouse_id=warehouse_id, business_type="sale_out", operation_type="confirm",
+            business_id=business_id, business_no=business_no, business_date=business_date,
+            posted_time=posted_time, lines=postings, remark=remark,
+        )
+        return costs
 
     async def confirmed_logs(self, business_type: str, business_id: int) -> Sequence[StockLogModel]:
         """锁定原确认流水供冲销校验，不隐藏异常删除的历史记录。"""

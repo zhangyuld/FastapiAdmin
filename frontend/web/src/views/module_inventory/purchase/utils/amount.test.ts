@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { PurchaseLine } from "@/api/module_inventory/purchase/types";
+import type { PurchaseLine } from "@/api/module_inventory/purchase/client";
 import { scaledDecimal, lineAmount, storedTotalAmount, totalAmount } from "./amount";
 
 describe("采购金额预览", () => {

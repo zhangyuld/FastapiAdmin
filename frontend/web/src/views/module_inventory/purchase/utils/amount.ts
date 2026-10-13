@@ -1,4 +1,4 @@
-import type { PurchaseDecimal, PurchaseLine } from "@/api/module_inventory/purchase/types";
+import type { PurchaseDecimal, PurchaseLine } from "@/api/module_inventory/purchase/client";
 
 /** 将非负十进制数转换为固定精度整数，超出精度或非法输入直接拒绝。 */
 export function scaledDecimal(value: PurchaseDecimal, precision: number): bigint {

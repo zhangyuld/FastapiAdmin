@@ -1,22 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { request } from "@utils";
-import { createPurchaseClient } from "./client";
 import PurchaseInAPI from "./in";
-import type { PurchaseSaveBody } from "./types";
+import PurchaseReturnAPI from "./return";
+import type { PurchaseSaveBody } from "./client";
 
 vi.mock("@utils", () => ({ request: vi.fn() }));
 
 it("入库关联退货使用独立 GET 分页接口", () => {
   PurchaseInAPI.relatedReturns(3, { page_no: 2, page_size: 10 });
   expect(request).toHaveBeenLastCalledWith({
-    url: "/inventory/purchase/in/returns/3",
+    url: "/inventory/purchase/inbound/returns/3",
     method: "get",
     params: { page_no: 2, page_size: 10 },
   });
 });
 
-describe.each(["/inventory/purchase/in", "/inventory/purchase/return"])("%s 接口契约", (path) => {
-  const api = createPurchaseClient({ path });
+describe.each([
+  { path: "/inventory/purchase/inbound", api: PurchaseInAPI },
+  { path: "/inventory/purchase/return_order", api: PurchaseReturnAPI },
+])("$path 接口契约", ({ path, api }) => {
   beforeEach(() => vi.mocked(request).mockClear());
 
   it("查询使用 GET，创建和状态操作使用 POST", () => {
@@ -36,7 +38,11 @@ describe.each(["/inventory/purchase/in", "/inventory/purchase/return"])("%s 接�
       items: [{ goods_id: 4, quantity: "1.000", unit_price: "2.0000" }],
     };
     api.create(body);
-    expect(request).toHaveBeenLastCalledWith({ url: path + "/create", method: "post", data: body });
+    expect(request).toHaveBeenLastCalledWith({
+      url: path + "/create",
+      method: "post",
+      data: body,
+    });
     api.update(3, { ...body, version: 2 });
     expect(request).toHaveBeenLastCalledWith({
       url: path + "/update/3",

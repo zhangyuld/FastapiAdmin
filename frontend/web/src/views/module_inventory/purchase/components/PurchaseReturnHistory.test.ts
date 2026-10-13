@@ -3,7 +3,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { computed, defineComponent, h, onUnmounted, reactive, watch } from "vue";
 import PurchaseInAPI from "@/api/module_inventory/purchase/in";
 import PurchaseReturnHistory from "./PurchaseReturnHistory.vue";
-import type { RelatedPurchaseReturn } from "@/api/module_inventory/purchase/types";
+import type { RelatedPurchaseReturn } from "@/api/module_inventory/purchase/in";
 
 vi.mock("@/api/module_inventory/purchase/in", () => ({
   default: { relatedReturns: vi.fn() },

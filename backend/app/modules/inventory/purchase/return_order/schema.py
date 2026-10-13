@@ -1,11 +1,11 @@
 from datetime import date, datetime
-from importlib import import_module
 from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-# in、return 均为 Python 关键字，模块间复用采购精度和版本契约时通过模块路径加载。
-_in_schema = import_module("app.modules.inventory.purchase.in.schema")
+from ..inbound import schema as _in_schema
+
+# 复用采购域精度和版本契约，模块目录使用合法 Python 标识符。
 PositiveId = _in_schema.PositiveId
 PurchaseVersion = _in_schema.PurchaseVersion
 PurchasePrice = _in_schema.PurchasePrice

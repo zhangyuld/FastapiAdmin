@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PurchaseLine } from "@/api/module_inventory/purchase/types";
+import type { PurchaseLine } from "@/api/module_inventory/purchase/client";
 import type { GoodsItem } from "@/api/module_inventory/basic/goods";
 import type { ColumnOption } from "@/types/component";
 import { Delete, Plus } from "@element-plus/icons-vue";

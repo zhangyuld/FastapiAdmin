@@ -1,11 +1,10 @@
 from copy import deepcopy
-from importlib import import_module
 from typing import Any
 
 import pytest
 from pydantic import ValidationError
 
-schema = import_module("app.modules.inventory.purchase.return.schema")
+from app.modules.inventory.purchase.return_order import schema as schema
 
 
 @pytest.fixture

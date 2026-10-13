@@ -35,11 +35,12 @@ def test_inventory_catalog_contract() -> None:
 
 
 def test_only_delivered_inventory_pages_are_enabled() -> None:
-    """仅已交付的基础档案和采购页面启用。"""
+    """基础档案、采购页面和销售前端预览菜单启用，其他规划菜单保持禁用。"""
     menus = _load_menu_seed()
     catalogs = [menu for menu in menus if menu.get("route_name") in EXPECTED_CATALOGS]
     pages = [page for catalog in catalogs for page in catalog["children"]]
-    delivered_names = {"InventoryGoodsCategory", "InventoryGoods", "InventoryCustomer", "InventorySupplier", "InventoryWarehouse", "InventoryPurchaseIn", "InventoryPurchaseReturn"}
+    delivered_names = {"InventoryGoodsCategory", "InventoryGoods", "InventoryCustomer", "InventorySupplier", "InventoryWarehouse", "InventoryPurchaseIn", "InventoryPurchaseReturn", "InventorySaleOut", "InventorySaleReturn"}
+    delivered_names.update({"InventoryStockBalance", "InventoryStockLog", "InventoryStockOpening", "InventoryStockCheck"})
 
     assert len(pages) == 19
     assert len({page["route_name"] for page in pages}) == 19
@@ -64,6 +65,43 @@ def test_purchase_button_permissions() -> None:
     for page in purchase["children"]:
         prefix = page["permission"].removesuffix(":query")
         assert page["status"] == 0
+        assert [button["permission"] for button in page["children"]] == [f"{prefix}:{action}" for action in actions]
+        assert [button["order"] for button in page["children"]] == list(range(1, 8))
+        assert all(button["type"] == 3 and button["status"] == 0 for button in page["children"])
+
+
+def test_stock_menu_contract() -> None:
+    """库存只读与单据权限分别配置，种子与初始化脚本一致。"""
+    from app.scripts.inventory_menu import INVENTORY_CATALOG_SPECS
+
+    stock = next(menu for menu in _load_menu_seed() if menu.get("route_name") == "InventoryStock")
+    spec = next(catalog for catalog in INVENTORY_CATALOG_SPECS if catalog.route_name == "InventoryStock")
+    for index, (page, page_spec) in enumerate(zip(stock["children"], spec.pages, strict=True)):
+        actions = ["detail", "export"] if index < 2 else ["create", "update", "detail", "delete", "confirm", "void", "export"]
+        prefix = page["permission"].removesuffix(":query")
+        assert page["status"] == 0 and page_spec.delivered
+        assert page["component_path"] == page_spec.component_path
+        assert page["route_name"] == page_spec.route_name
+        assert [action for _, action in page_spec.buttons] == actions
+        assert [button["permission"] for button in page["children"]] == [f"{prefix}:{action}" for action in actions]
+
+
+def test_sale_button_permissions_and_script_contract() -> None:
+    """销售种子与初始化脚本保持路由、组件和按钮权限一致。"""
+    from app.scripts.inventory_menu import INVENTORY_CATALOG_SPECS
+
+    sale = next(menu for menu in _load_menu_seed() if menu.get("route_name") == "InventorySale")
+    spec = next(catalog for catalog in INVENTORY_CATALOG_SPECS if catalog.route_name == "InventorySale")
+    actions = ["create", "update", "detail", "delete", "confirm", "void", "export"]
+    assert len(sale["children"]) == len(spec.pages) == 2
+    for page, page_spec in zip(sale["children"], spec.pages, strict=True):
+        prefix = page["permission"].removesuffix(":query")
+        assert page["status"] == 0 and page_spec.delivered
+        assert page["route_name"] == page_spec.route_name
+        assert page["route_path"] == page_spec.route_path
+        assert page["component_path"] == page_spec.component_path
+        assert page["permission"] == page_spec.permission
+        assert [action for _, action in page_spec.buttons] == actions
         assert [button["permission"] for button in page["children"]] == [f"{prefix}:{action}" for action in actions]
         assert [button["order"] for button in page["children"]] == list(range(1, 8))
         assert all(button["type"] == 3 and button["status"] == 0 for button in page["children"])

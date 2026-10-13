@@ -15,7 +15,7 @@
 
 ## 公共接口
 
-以下路径前缀 P 为 /inventory/purchase/in 或 /inventory/purchase/return。
+以下路径前缀 P 为 /inventory/purchase/inbound 或 /inventory/purchase/return_order。
 
 | 方法 | 路径           | 入参及响应                                                    |
 | ---- | -------------- | ------------------------------------------------------------- |
@@ -32,7 +32,7 @@ JSON 的 versions 对象键实际为 ID 字符串，后端应按 ID 解析。
 
 查询字段：page_no、page_size、order_no、supplier_id、warehouse_id、business_date 日期区间、status，以及框架已有 created_by、updated_by、created_time、updated_time 审计筛选。退货增加 source_order_no。
 查询日期区间的序列化方式沿用请求层，后端与基础档案查询保持一致。
-完整 TypeScript 契约见同目录 types.ts 和 client.ts。
+公共单据、明细和保存输入定义位于 client.ts；关联退货响应位于 in.ts，具体请求入参紧邻接口函数，不再使用独立 types.ts。
 
 ## 保存草稿
 
@@ -75,7 +75,7 @@ JSON 的 versions 对象键实际为 ID 字符串，后端应按 ID 解析。
 
 ## 退货来源及可退数量
 
-GET /inventory/purchase/in/returnable/{id}?exclude_return_id={当前退货单ID}
+GET /inventory/purchase/inbound/returnable/{id}?exclude_return_id={当前退货单ID}
 
 返回 ApiResponse<PurchaseDocument>，必须含 supplier_name、warehouse_name、order_no 和 items；每条明细必须含入库明细 id、商品快照、原单价、returnable_quantity。
 查询沿用 module_inventory:purchase_in:detail 权限及入库单数据范围。
@@ -91,7 +91,7 @@ return_status 为 none、partial、full；confirmed_count 为有效退货单数�
 汇总计入全部已确认且未删除、未作废的关联退货，不受下游退货的数据范围过滤影响；不改变原采购数量、金额和单据状态。
 未确认或已作废入库单的可退数量为零，草稿退货不预占数量，作废退货释放数量。
 
-GET /inventory/purchase/in/returns/{id}?page_no=1&page_size=10
+GET /inventory/purchase/inbound/returns/{id}?page_no=1&page_size=10
 
 分页返回当前用户数据范围内的关联退货，包含草稿、已确认、已作废记录，按退货 ID 降序排列。
 同时要求 module_inventory:purchase_in:detail 和 module_inventory:purchase_return:query 权限，并校验原入库单的数据范围。

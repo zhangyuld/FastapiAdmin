@@ -1,7 +1,6 @@
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from decimal import ROUND_HALF_UP, Decimal, localcontext
-from importlib import import_module
 from typing import Any
 from uuid import uuid4
 
@@ -16,6 +15,7 @@ from app.modules.inventory.stock.posting import StockPostingLine, StockPostingSe
 from app.utils.common_util import search_to_dict
 from app.utils.excel_util import ExcelUtil
 
+from ..inbound.crud import PurchaseInCRUD
 from ..model import PurchaseInModel, PurchaseReturnModel
 from .crud import PurchaseReturnCRUD, PurchaseReturnItemValues, ReturnedTotals
 from .schema import (
@@ -31,7 +31,6 @@ from .schema import (
     PurchaseReturnVoidSchema,
 )
 
-PurchaseInCRUD = import_module("app.modules.inventory.purchase.in.crud").PurchaseInCRUD
 EXPORT_COLUMNS = {
     "order_no": "单据编号",
     "supplier_name": "供应商",

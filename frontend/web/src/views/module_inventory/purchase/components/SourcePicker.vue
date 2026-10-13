@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PurchaseInAPI from "@/api/module_inventory/purchase/in";
-import type { PurchaseDocument } from "@/api/module_inventory/purchase/types";
+import type { PurchaseDocument } from "@/api/module_inventory/purchase/client";
 import { Search } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 defineOptions({ name: "PurchaseSourcePicker" });

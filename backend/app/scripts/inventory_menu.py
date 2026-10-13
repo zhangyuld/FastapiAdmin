@@ -236,8 +236,17 @@ INVENTORY_CATALOG_SPECS: tuple[InventoryCatalogSpec, ...] = (
         order=4,
         redirect="/inventory/sale/out",
         pages=(
-            InventoryPageSpec("销售出库", "InventorySaleOut", "/inventory/sale/out", "module_inventory/sale/out/index", "module_inventory:sale_out:query", "ri:send-plane-line", 1),
-            InventoryPageSpec("销售退货", "InventorySaleReturn", "/inventory/sale/return", "module_inventory/sale/return/index", "module_inventory:sale_return:query", "ri:arrow-go-back-line", 2),
+            # 销售菜单开放供前端预览，业务接口仍待实现。
+            InventoryPageSpec(
+                "销售出库", "InventorySaleOut", "/inventory/sale/out", "module_inventory/sale/out/index", "module_inventory:sale_out:query", "ri:send-plane-line", 1,
+                delivered=True,
+                buttons=(("新增", "create"), ("编辑", "update"), ("详情", "detail"), ("删除", "delete"), ("确认", "confirm"), ("作废", "void"), ("导出", "export")),
+            ),
+            InventoryPageSpec(
+                "销售退货", "InventorySaleReturn", "/inventory/sale/return", "module_inventory/sale/return/index", "module_inventory:sale_return:query", "ri:arrow-go-back-line", 2,
+                delivered=True,
+                buttons=(("新增", "create"), ("编辑", "update"), ("详情", "detail"), ("删除", "delete"), ("确认", "confirm"), ("作废", "void"), ("导出", "export")),
+            ),
         ),
     ),
     InventoryCatalogSpec(
@@ -249,11 +258,15 @@ INVENTORY_CATALOG_SPECS: tuple[InventoryCatalogSpec, ...] = (
         redirect="/inventory/stock/balance",
         pages=(
             InventoryPageSpec(
-                "当前库存", "InventoryStockBalance", "/inventory/stock/balance", "module_inventory/stock/balance/index", "module_inventory:stock_balance:query", "ri:archive-drawer-line", 1
+                "当前库存", "InventoryStockBalance", "/inventory/stock/balance", "module_inventory/stock/balance/index", "module_inventory:stock_balance:query", "ri:archive-drawer-line", 1,
+                delivered=True, buttons=(("详情", "detail"), ("导出", "export")),
             ),
-            InventoryPageSpec("库存流水", "InventoryStockLog", "/inventory/stock/log", "module_inventory/stock/log/index", "module_inventory:stock_log:query", "ri:file-list-3-line", 2),
-            InventoryPageSpec("期初库存", "InventoryStockOpening", "/inventory/stock/opening", "module_inventory/stock/opening/index", "module_inventory:stock_opening:query", "ri:database-2-line", 3),
-            InventoryPageSpec("库存盘点", "InventoryStockCheck", "/inventory/stock/check", "module_inventory/stock/check/index", "module_inventory:stock_check:query", "ri:survey-line", 4),
+            InventoryPageSpec("库存流水", "InventoryStockLog", "/inventory/stock/log", "module_inventory/stock/log/index", "module_inventory:stock_log:query", "ri:file-list-3-line", 2,
+                delivered=True, buttons=(("详情", "detail"), ("导出", "export"))),
+            InventoryPageSpec("期初库存", "InventoryStockOpening", "/inventory/stock/opening", "module_inventory/stock/opening/index", "module_inventory:stock_opening:query", "ri:database-2-line", 3,
+                delivered=True, buttons=(("新增", "create"), ("编辑", "update"), ("详情", "detail"), ("删除", "delete"), ("确认", "confirm"), ("作废", "void"), ("导出", "export"))),
+            InventoryPageSpec("库存盘点", "InventoryStockCheck", "/inventory/stock/check", "module_inventory/stock/check/index", "module_inventory:stock_check:query", "ri:survey-line", 4,
+                delivered=True, buttons=(("新增", "create"), ("编辑", "update"), ("详情", "detail"), ("删除", "delete"), ("确认", "confirm"), ("作废", "void"), ("导出", "export"))),
         ),
     ),
     InventoryCatalogSpec(

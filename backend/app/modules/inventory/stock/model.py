@@ -105,6 +105,8 @@ class StockCheckItemModel(ModelMixin, UserMixin):
     spec: Mapped[str | None] = mapped_column(String(200), nullable=True, comment="规格型号快照")
     unit: Mapped[str] = mapped_column(String(32), nullable=False, comment="单位快照")
     system_quantity: Mapped[Decimal] = mapped_column(Numeric(18, 3), nullable=False, comment="账面数量快照")
+    system_stock_amount: Mapped[Decimal | None] = mapped_column(Numeric(18, 2), nullable=True, comment="账面金额快照，旧草稿需刷新后确认")
+    balance_version: Mapped[int | None] = mapped_column(Integer, nullable=True, comment="盘点账面库存版本，零余额首次创建为0")
     actual_quantity: Mapped[Decimal] = mapped_column(Numeric(18, 3), nullable=False, comment="实盘数量")
     difference_quantity: Mapped[Decimal] = mapped_column(Numeric(18, 3), nullable=False, comment="盘点差异数量")
     unit_cost: Mapped[Decimal] = mapped_column(Numeric(18, 4), nullable=False, comment="差异入账单位成本")

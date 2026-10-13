@@ -24,7 +24,7 @@ from .schema import (
 )
 from .service import PurchaseReturnService
 
-PurchaseReturnRouter = APIRouter(route_class=OperationLogRoute, prefix="/return", tags=["采购退货"])
+PurchaseReturnRouter = APIRouter(route_class=OperationLogRoute, prefix="/return_order", tags=["采购退货"])
 
 
 @PurchaseReturnRouter.get("/list", summary="分页查询采购退货", response_model=ResponseSchema[PageResultSchema[PurchaseReturnOutSchema]])

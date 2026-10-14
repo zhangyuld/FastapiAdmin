@@ -35,12 +35,14 @@ def test_inventory_catalog_contract() -> None:
 
 
 def test_only_delivered_inventory_pages_are_enabled() -> None:
-    """基础档案、采购页面和销售前端预览菜单启用，其他规划菜单保持禁用。"""
+    """完整交付及前端预览页面均可见，但描述明确区分交付范围。"""
     menus = _load_menu_seed()
     catalogs = [menu for menu in menus if menu.get("route_name") in EXPECTED_CATALOGS]
     pages = [page for catalog in catalogs for page in catalog["children"]]
     delivered_names = {"InventoryGoodsCategory", "InventoryGoods", "InventoryCustomer", "InventorySupplier", "InventoryWarehouse", "InventoryPurchaseIn", "InventoryPurchaseReturn", "InventorySaleOut", "InventorySaleReturn"}
     delivered_names.update({"InventoryStockBalance", "InventoryStockLog", "InventoryStockOpening", "InventoryStockCheck"})
+    delivered_names.update({"InventoryReceivable", "InventoryPayable"})
+    delivered_names.update({"InventoryPurchaseReport", "InventorySaleReport", "InventoryStockReport", "InventoryProfitReport"})
 
     assert len(pages) == 19
     assert len({page["route_name"] for page in pages}) == 19
@@ -51,7 +53,7 @@ def test_only_delivered_inventory_pages_are_enabled() -> None:
     assert {page["route_name"] for page in delivered_pages} == delivered_names
     assert all(page["status"] == 0 for page in delivered_pages)
     assert all(page["description"] == "进销存已交付菜单" for page in delivered_pages)
-    assert all(page["status"] == 1 for page in pending_pages)
+    assert pending_pages == []
     assert all(page["route_path"].startswith("/inventory/") for page in pages)
     assert all(page["component_path"].startswith("module_inventory/") for page in pages)
     assert all(page["permission"].endswith(":query") for page in pages)
@@ -68,6 +70,36 @@ def test_purchase_button_permissions() -> None:
         assert [button["permission"] for button in page["children"]] == [f"{prefix}:{action}" for action in actions]
         assert [button["order"] for button in page["children"]] == list(range(1, 8))
         assert all(button["type"] == 3 and button["status"] == 0 for button in page["children"])
+
+
+def test_report_readonly_menu_contract() -> None:
+    """四类报表只提供查询与导出，不增加报表写入或独立详情权限。"""
+    from app.scripts.inventory_menu import INVENTORY_CATALOG_SPECS, _create_inventory_page
+
+    report = next(menu for menu in _load_menu_seed() if menu.get("route_name") == "InventoryReport")
+    spec = next(catalog for catalog in INVENTORY_CATALOG_SPECS if catalog.route_name == "InventoryReport")
+    for page, page_spec in zip(report["children"], spec.pages, strict=True):
+        assert page["status"] == 0 and page_spec.delivered
+        assert not page_spec.frontend_only
+        assert page["component_path"] == page_spec.component_path
+        assert page["route_name"] == page_spec.route_name
+        assert page["description"] == _create_inventory_page(page_spec, 1).description
+        assert [button["permission"] for button in page["children"]] == [page["permission"].removesuffix(":query") + ":export"]
+        assert [action for _, action in page_spec.buttons] == ["export"]
+
+
+def test_finance_menu_contract() -> None:
+    """往来只读权限与种子、初始化脚本保持一致。"""
+    from app.scripts.inventory_menu import INVENTORY_CATALOG_SPECS
+
+    finance = next(menu for menu in _load_menu_seed() if menu.get("route_name") == "InventoryFinance")
+    spec = next(catalog for catalog in INVENTORY_CATALOG_SPECS if catalog.route_name == "InventoryFinance")
+    for page, page_spec in zip(finance["children"], spec.pages, strict=True):
+        assert page["status"] == 0 and page_spec.delivered
+        assert page["component_path"] == page_spec.component_path
+        prefix = page["permission"].removesuffix(":query")
+        assert [button["permission"] for button in page["children"]] == [prefix + ":detail", prefix + ":export"]
+        assert [action for _, action in page_spec.buttons] == ["detail", "export"]
 
 
 def test_stock_menu_contract() -> None:

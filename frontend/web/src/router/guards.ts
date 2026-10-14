@@ -82,7 +82,12 @@ export function setupBeforeEachGuard(router: Router): void {
 
       // 注册动态路由后，若原导航被 catch-all 404 捕获（F5 刷新场景），重定向触发重新解析
       if (to.matched.some((r) => r.name === "CatchAll404")) {
-        return { path: to.path, replace: true };
+        return {
+          path: to.path,
+          query: to.query,
+          hash: to.hash,
+          replace: true,
+        };
       }
     }
 

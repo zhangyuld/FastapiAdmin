@@ -28,7 +28,7 @@ class MenuGroupSpec:
 
 @dataclass(frozen=True, slots=True)
 class InventoryPageSpec:
-    """尚未交付的进销存页面菜单定义。"""
+    """进销存页面菜单及前端预览范围定义。"""
 
     name: str
     route_name: str
@@ -39,6 +39,7 @@ class InventoryPageSpec:
     order: int
     delivered: bool = False
     buttons: tuple[tuple[str, str], ...] = ()
+    frontend_only: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -278,9 +279,11 @@ INVENTORY_CATALOG_SPECS: tuple[InventoryCatalogSpec, ...] = (
         redirect="/inventory/finance/receivable",
         pages=(
             InventoryPageSpec(
-                "应收账款", "InventoryReceivable", "/inventory/finance/receivable", "module_inventory/finance/receivable/index", "module_inventory:receivable:query", "ri:money-cny-circle-line", 1
+                "应收账款", "InventoryReceivable", "/inventory/finance/receivable", "module_inventory/finance/receivable/index", "module_inventory:receivable:query", "ri:money-cny-circle-line", 1,
+                delivered=True, buttons=(("详情", "detail"), ("导出", "export")),
             ),
-            InventoryPageSpec("应付账款", "InventoryPayable", "/inventory/finance/payable", "module_inventory/finance/payable/index", "module_inventory:payable:query", "ri:secure-payment-line", 2),
+            InventoryPageSpec("应付账款", "InventoryPayable", "/inventory/finance/payable", "module_inventory/finance/payable/index", "module_inventory:payable:query", "ri:secure-payment-line", 2,
+                delivered=True, buttons=(("详情", "detail"), ("导出", "export"))),
         ),
     ),
     InventoryCatalogSpec(
@@ -292,11 +295,15 @@ INVENTORY_CATALOG_SPECS: tuple[InventoryCatalogSpec, ...] = (
         redirect="/inventory/report/purchase",
         pages=(
             InventoryPageSpec(
-                "采购报表", "InventoryPurchaseReport", "/inventory/report/purchase", "module_inventory/report/purchase/index", "module_inventory:purchase_report:query", "ri:file-chart-line", 1
+                "采购报表", "InventoryPurchaseReport", "/inventory/report/purchase", "module_inventory/report/purchase/index", "module_inventory:purchase_report:query", "ri:file-chart-line", 1,
+                delivered=True, frontend_only=False, buttons=(("导出", "export"),),
             ),
-            InventoryPageSpec("销售报表", "InventorySaleReport", "/inventory/report/sale", "module_inventory/report/sale/index", "module_inventory:sale_report:query", "ri:line-chart-line", 2),
-            InventoryPageSpec("库存报表", "InventoryStockReport", "/inventory/report/stock", "module_inventory/report/stock/index", "module_inventory:stock_report:query", "ri:pie-chart-2-line", 3),
-            InventoryPageSpec("毛利报表", "InventoryProfitReport", "/inventory/report/profit", "module_inventory/report/profit/index", "module_inventory:profit_report:query", "ri:funds-line", 4),
+            InventoryPageSpec("销售报表", "InventorySaleReport", "/inventory/report/sale", "module_inventory/report/sale/index", "module_inventory:sale_report:query", "ri:line-chart-line", 2,
+                delivered=True, frontend_only=False, buttons=(("导出", "export"),)),
+            InventoryPageSpec("库存报表", "InventoryStockReport", "/inventory/report/stock", "module_inventory/report/stock/index", "module_inventory:stock_report:query", "ri:pie-chart-2-line", 3,
+                delivered=True, frontend_only=False, buttons=(("导出", "export"),)),
+            InventoryPageSpec("毛利报表", "InventoryProfitReport", "/inventory/report/profit", "module_inventory/report/profit/index", "module_inventory:profit_report:query", "ri:funds-line", 4,
+                delivered=True, frontend_only=False, buttons=(("导出", "export"),)),
         ),
     ),
 )
@@ -364,6 +371,13 @@ def _create_inventory_catalog(spec: InventoryCatalogSpec) -> MenuModel:
     )
 
 
+def _inventory_page_description(spec: InventoryPageSpec) -> str:
+    """区分前端预览与完整交付，避免菜单启用被误认为后端完成。"""
+    if spec.frontend_only:
+        return "进销存前端预览菜单，后端待开发"
+    return "进销存已交付菜单" if spec.delivered else "进销存规划菜单，功能实现后启用"
+
+
 def _create_inventory_page(spec: InventoryPageSpec, parent_id: int) -> MenuModel:
     """创建进销存页面菜单，已交付页面直接启用。"""
     return MenuModel(
@@ -383,7 +397,7 @@ def _create_inventory_page(spec: InventoryPageSpec, parent_id: int) -> MenuModel
         params=None,
         affix=False,
         redirect=None,
-        description="进销存已交付菜单" if spec.delivered else "进销存规划菜单，功能实现后启用",
+        description=_inventory_page_description(spec),
         link=None,
         is_iframe=False,
         is_hide_tab=False,
@@ -545,7 +559,7 @@ async def initialize_inventory_business_menus() -> int:
                     created_count += 1
                 elif page_spec.delivered:
                     page.status = 0
-                    page.description = "进销存已交付菜单"
+                    page.description = _inventory_page_description(page_spec)
 
                 if not page_spec.delivered:
                     continue

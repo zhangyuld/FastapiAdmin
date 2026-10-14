@@ -10,8 +10,15 @@ from app.modules.inventory.basic.customer.controller import CustomerRouter
 from app.modules.inventory.basic.goods.controller import GoodsRouter
 from app.modules.inventory.basic.supplier.controller import SupplierRouter
 from app.modules.inventory.basic.warehouse.controller import WarehouseRouter
+from app.modules.inventory.dashboard.controller import DashboardRouter
+from app.modules.inventory.finance.payable.controller import PayableRouter
+from app.modules.inventory.finance.receivable.controller import ReceivableRouter
 from app.modules.inventory.purchase.inbound.controller import PurchaseInRouter
 from app.modules.inventory.purchase.return_order.controller import PurchaseReturnRouter
+from app.modules.inventory.report.profit.controller import ProfitReportRouter
+from app.modules.inventory.report.purchase.controller import PurchaseReportRouter
+from app.modules.inventory.report.sale.controller import SaleReportRouter
+from app.modules.inventory.report.stock.controller import StockReportRouter
 from app.modules.inventory.sale.out.controller import SaleOutRouter
 from app.modules.inventory.sale.return_order.controller import SaleReturnRouter
 from app.modules.inventory.stock.balance.controller import StockBalanceRouter
@@ -73,9 +80,12 @@ DOMAIN_CONTROLLERS: dict[str, list[APIRouter]] = {
     ],
     "/ai": [ChatRouter],
     "/inventory/basic": [GoodsCategoryRouter, GoodsRouter, CustomerRouter, SupplierRouter, WarehouseRouter],
+    "/inventory/dashboard": [DashboardRouter],
     "/inventory/purchase": [PurchaseInRouter, PurchaseReturnRouter],
     "/inventory/sale": [SaleOutRouter, SaleReturnRouter],
     "/inventory/stock": [StockBalanceRouter, StockLogRouter, StockOpeningRouter, StockCheckRouter],
+    "/inventory/finance": [ReceivableRouter, PayableRouter],
+    "/inventory/report": [PurchaseReportRouter, SaleReportRouter, StockReportRouter, ProfitReportRouter],
     "/generator": [GenRouter],
     "/common": [FileRouter],
 }

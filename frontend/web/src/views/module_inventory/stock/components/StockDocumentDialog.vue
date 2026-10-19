@@ -41,12 +41,8 @@ const readonly = computed(
 );
 const { hasAuth } = useAuth();
 const prefix = "module_inventory:stock_" + props.kind;
-const {
-  warehouses,
-  loading: warehouseLoading,
-  searchWarehouses,
-  retainWarehouse,
-} = useStockOptions(true);
+const { warehouses, warehouseSelectProps, searchWarehouses, retainWarehouse } =
+  useStockOptions(true);
 const rules: FormRules = {
   warehouse_id: [{ required: true, message: "请选择仓库", trigger: "change" }],
   business_date: [{ required: true, message: "请选择业务日期", trigger: "change" }],
@@ -71,7 +67,7 @@ async function initialize(): Promise<void> {
   state.remark = "";
   state.items = [];
   try {
-    if (!readonly.value && hasAuth("module_inventory:warehouse:query")) await searchWarehouses();
+    if (!readonly.value) await searchWarehouses();
     if (props.documentId) {
       const response = await api.detail(props.documentId);
       if (current === sequence) populate(response.data.data);
@@ -229,17 +225,15 @@ watch(
               ><ElFormItem label="仓库" prop="warehouse_id"
                 ><ElSelect
                   v-model="state.warehouse_id"
-                  filterable
-                  remote
-                  :remote-method="searchWarehouses"
-                  :loading="warehouseLoading"
+                  v-bind="warehouseSelectProps"
                   style="width: 100%"
                   @change="changeWarehouse"
                   ><ElOption
                     v-for="row in warehouses"
                     :key="row.value"
                     :value="row.value"
-                    :label="row.label" /></ElSelect></ElFormItem
+                    :label="row.label"
+                    :disabled="row.disabled" /></ElSelect></ElFormItem
             ></ElCol>
             <ElCol :span="24"
               ><ElFormItem label="备注"

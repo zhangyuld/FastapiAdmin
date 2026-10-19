@@ -1,80 +1,49 @@
-import SupplierAPI from "@/api/module_inventory/basic/supplier";
-import WarehouseAPI from "@/api/module_inventory/basic/warehouse";
+import { getSupplierOptions, getWarehouseOptions } from "@/api/module_inventory/basic/options";
+import {
+  useArchiveOptions,
+  type ArchiveSelectOption,
+} from "../../basic/composables/useArchiveOptions";
 
-/** 采购表单使用的远程下拉选项。 */
-export interface PurchaseOption {
-  value: number;
-  label: string;
-}
-/** 加载启用的供应商、仓库并保留单据历史选项。 */
-export function usePurchaseOptions() {
-  const suppliers = ref<PurchaseOption[]>([]);
-  const warehouses = ref<PurchaseOption[]>([]);
-  const supplierLoading = ref(false);
-  const warehouseLoading = ref(false);
-  let supplierSequence = 0;
-  let warehouseSequence = 0;
-  /** 搜索启用供应商，忽略过期请求。 */
-  async function searchSuppliers(keyword = ""): Promise<void> {
-    const sequence = ++supplierSequence;
-    supplierLoading.value = true;
-    try {
-      const response = await SupplierAPI.listSupplier({
-        page_no: 1,
-        page_size: 50,
-        supplier_name: keyword || undefined,
-        status: 0,
-      });
-      if (sequence === supplierSequence)
-        suppliers.value = response.data.data.items
-          .filter((item) => item.id)
-          .map((item) => ({ value: item.id!, label: item.supplier_name }));
-    } catch {
-      if (sequence === supplierSequence) suppliers.value = [];
-    } finally {
-      if (sequence === supplierSequence) supplierLoading.value = false;
-    }
-  }
-  /** 搜索启用仓库，忽略过期请求。 */
-  async function searchWarehouses(keyword = ""): Promise<void> {
-    const sequence = ++warehouseSequence;
-    warehouseLoading.value = true;
-    try {
-      const response = await WarehouseAPI.listWarehouse({
-        page_no: 1,
-        page_size: 50,
-        warehouse_name: keyword || undefined,
-        status: 0,
-      });
-      if (sequence === warehouseSequence)
-        warehouses.value = response.data.data.items
-          .filter((item) => item.id)
-          .map((item) => ({ value: item.id!, label: item.warehouse_name }));
-    } catch {
-      if (sequence === warehouseSequence) warehouses.value = [];
-    } finally {
-      if (sequence === warehouseSequence) warehouseLoading.value = false;
-    }
-  }
-  /** 为历史单据补入未在当前搜索结果中的选项。 */
+/** 采购模块下拉展示项，不包含基础档案管理详情。 */
+export type PurchaseOption = ArchiveSelectOption;
+
+/** 录单只选启用档案，历史查询包含停用档案。 */
+export function usePurchaseOptions(enabledOnly = false) {
+  const supplier = useArchiveOptions({
+    fetch: getSupplierOptions,
+    enabledOnly,
+    map: (row) => ({
+      value: row.id,
+      label: row.supplier_name + (row.status === 1 ? "（停用）" : ""),
+    }),
+  });
+  const warehouse = useArchiveOptions({
+    fetch: getWarehouseOptions,
+    enabledOnly,
+    map: (row) => ({
+      value: row.id,
+      label: row.warehouse_name + (row.status === 1 ? "（停用）" : ""),
+    }),
+  });
+  /** 历史名称由单据携带，不请求档案管理详情。 */
   function retainOptions(
     supplierId: number,
     supplierName: string,
     warehouseId: number,
     warehouseName: string
   ): void {
-    if (!suppliers.value.some((item) => item.value === supplierId))
-      suppliers.value.push({ value: supplierId, label: supplierName });
-    if (!warehouses.value.some((item) => item.value === warehouseId))
-      warehouses.value.push({ value: warehouseId, label: warehouseName });
+    supplier.retain(supplierId, supplierName);
+    warehouse.retain(warehouseId, warehouseName);
   }
   return {
-    suppliers,
-    warehouses,
-    supplierLoading,
-    warehouseLoading,
-    searchSuppliers,
-    searchWarehouses,
+    suppliers: supplier.options,
+    warehouses: warehouse.options,
+    supplierLoading: supplier.loading,
+    warehouseLoading: warehouse.loading,
+    supplierSelectProps: supplier.selectProps,
+    warehouseSelectProps: warehouse.selectProps,
+    searchSuppliers: supplier.search,
+    searchWarehouses: warehouse.search,
     retainOptions,
   };
 }

@@ -12,16 +12,7 @@ const model = defineModel<ReportQuery>({ required: true });
 const emit = defineEmits<{ search: [query: ReportQuery]; reset: [] }>();
 const { width } = useWindowSize();
 const mobile = computed(() => width.value < 768);
-const {
-  warehouses,
-  categories,
-  warehouseLoading,
-  failed,
-  canWarehouse,
-  canCategory,
-  searchWarehouses,
-  retry,
-} = useReportOptions();
+const { failed, warehouseSelectProps, categorySelectProps, retry } = useReportOptions();
 const items = computed<SearchFormItem[]>(() =>
   [
     ...(props.kind === "stock" && props.view === "balance"
@@ -48,30 +39,21 @@ const items = computed<SearchFormItem[]>(() =>
         ]),
     {
       label: "仓库",
-      key: canWarehouse ? "warehouse_id" : "warehouse_name",
-      type: canWarehouse ? "select" : "input",
+      key: "warehouse_id",
+      type: "select",
       clearable: true,
       span: 6,
-      props: canWarehouse
-        ? {
-            options: warehouses.value,
-            remote: true,
-            filterable: true,
-            clearable: true,
-            remoteMethod: searchWarehouses,
-            loading: warehouseLoading.value,
-          }
-        : {},
+      props: warehouseSelectProps.value,
     },
     { label: "商品编码", key: "goods_code", type: "input", clearable: true, span: 6 },
     { label: "商品名称", key: "goods_name", type: "input", clearable: true, span: 6 },
     {
       label: "商品分类",
-      key: canCategory ? "category_id" : "category_name",
-      type: canCategory ? "select" : "input",
+      key: "category_id",
+      type: "select",
       clearable: true,
       span: 6,
-      props: canCategory ? { options: categories.value, filterable: true, clearable: true } : {},
+      props: categorySelectProps.value,
     },
     ...(props.view === "documents"
       ? [

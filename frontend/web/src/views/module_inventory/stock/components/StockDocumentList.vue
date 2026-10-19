@@ -34,7 +34,7 @@ const api = props.kind === "opening" ? OpeningAPI : CheckAPI;
 const label = props.kind === "opening" ? "期初库存" : "库存盘点";
 const prefix = "module_inventory:stock_" + props.kind;
 const { hasAuth } = useAuth();
-const { warehouses, loading: warehouseLoading, searchWarehouses } = useStockOptions();
+const { warehouseSelectProps, searchWarehouses } = useStockOptions();
 const items = computed<SearchFormItem[]>(() => [
   { label: "单据编号", key: "doc_no", type: "input", clearable: true, span: 6 },
   {
@@ -42,14 +42,7 @@ const items = computed<SearchFormItem[]>(() => [
     key: "warehouse_id",
     type: "select",
     span: 6,
-    props: {
-      options: warehouses.value,
-      remote: true,
-      filterable: true,
-      remoteMethod: searchWarehouses,
-      loading: warehouseLoading.value,
-      clearable: true,
-    },
+    props: warehouseSelectProps.value,
   },
   {
     label: "状态",
@@ -310,7 +303,7 @@ function changePage(page: number): void {
 onMounted(() => {
   if (hasAuth(prefix + ":query")) {
     reload();
-    if (hasAuth("module_inventory:warehouse:query")) void searchWarehouses();
+    void searchWarehouses();
   }
 });
 </script>

@@ -36,13 +36,8 @@ const route = useRoute();
 const router = useRouter();
 const searchForm = ref<StockQuery>({});
 const showSearch = ref(true);
-const {
-  warehouses,
-  categories,
-  loading: warehouseLoading,
-  searchWarehouses,
-  loadCategories,
-} = useStockOptions();
+const { warehouseSelectProps, categorySelectProps, searchWarehouses, loadCategories } =
+  useStockOptions();
 const businessLabels: Record<string, string> = {
   opening_balance: "期初库存",
   purchase_in: "采购入库",
@@ -94,21 +89,14 @@ const items = computed<SearchFormItem[]>(() => [
     key: "category_id",
     type: "select",
     span: 6,
-    props: { options: categories.value, filterable: true, clearable: true },
+    props: categorySelectProps.value,
   },
   {
     label: "仓库",
     key: "warehouse_id",
     type: "select",
     span: 6,
-    props: {
-      options: warehouses.value,
-      remote: true,
-      filterable: true,
-      remoteMethod: searchWarehouses,
-      loading: warehouseLoading.value,
-      clearable: true,
-    },
+    props: warehouseSelectProps.value,
   },
   ...(props.kind === "balance"
     ? [
@@ -394,8 +382,8 @@ onMounted(() => {
   if (!hasAuth(prefix + ":query")) return;
   restoreRoute();
   reload();
-  if (hasAuth("module_inventory:warehouse:query")) void searchWarehouses();
-  if (hasAuth("module_inventory:category:query")) void loadCategories();
+  void searchWarehouses();
+  void loadCategories();
 });
 </script>
 <template>

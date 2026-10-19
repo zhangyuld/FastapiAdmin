@@ -17,6 +17,7 @@ from app.utils.common_util import (
 from .crud import GoodsCategoryCRUD
 from .schema import (
     GoodsCategoryCreateSchema,
+    GoodsCategoryOptionSchema,
     GoodsCategoryOutSchema,
     GoodsCategoryQueryParam,
     GoodsCategoryUpdateSchema,
@@ -30,6 +31,18 @@ class GoodsCategoryService:
         self.auth = auth
         self.db = db
         self.crud = GoodsCategoryCRUD(auth, db)
+
+    async def options(self, status: int | None = None) -> list[GoodsCategoryOptionSchema]:
+        """组装精简分类树，筛选后缺少父级的节点提升为根，避免丢失选项。"""
+        rows = await self.crud.options(status)
+        nodes = {row.id: row for row in rows}
+        roots: list[GoodsCategoryOptionSchema] = []
+        for row in rows:
+            if row.parent_id in nodes and row.parent_id != row.id:
+                nodes[row.parent_id].children.append(row)
+            else:
+                roots.append(row)
+        return roots
 
     async def detail(self, id: int) -> GoodsCategoryOutSchema:
         """查询分类详情并补充父分类名称。"""

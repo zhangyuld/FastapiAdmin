@@ -7,6 +7,16 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.core.base_schema import BaseQueryParam, BaseSchema, UserByQueryParam, UserBySchema
 
 
+class WarehouseOptionSchema(BaseModel):
+    """跨业务页面选项响应，仅包含标识、显示字段和状态。"""
+
+    id: int
+    warehouse_code: str
+    warehouse_name: str
+    status: int
+    is_default: bool
+
+
 class WarehouseBaseSchema(BaseModel):
     """仓库基础字段。"""
 

@@ -55,12 +55,12 @@ let sequence = 0;
 const {
   customers,
   warehouses,
-  customerLoading,
-  warehouseLoading,
+  customerSelectProps,
+  warehouseSelectProps,
   searchCustomers,
   searchWarehouses,
   retainOptions,
-} = useSaleOptions();
+} = useSaleOptions(true);
 const api = computed(() => (props.kind === "out" ? SaleOutAPI : SaleReturnAPI));
 const label = computed(() => (props.kind === "out" ? "销售出库" : "销售退货"));
 const readonly = computed(
@@ -384,17 +384,15 @@ function viewReturn(id: number): void {
                   placeholder="选择原出库单后自动带出" /><ElSelect
                   v-else
                   v-model="state.customer_id"
-                  filterable
-                  remote
-                  :remote-method="searchCustomers"
-                  :loading="customerLoading"
+                  v-bind="customerSelectProps"
                   :disabled="readonly || sourced || loading || saving"
                   placeholder="请选择客户"
                   ><ElOption
                     v-for="item in customers"
                     :key="item.value"
                     :value="item.value"
-                    :label="item.label" /></ElSelect></ElFormItem
+                    :label="item.label"
+                    :disabled="item.disabled" /></ElSelect></ElFormItem
             ></ElCol>
             <ElCol :xs="24" :sm="12"
               ><ElFormItem :label="kind === 'out' ? '出库仓库' : '退货仓库'" prop="warehouse_id"
@@ -405,17 +403,15 @@ function viewReturn(id: number): void {
                   placeholder="选择原出库单后自动带出" /><ElSelect
                   v-else
                   v-model="state.warehouse_id"
-                  filterable
-                  remote
-                  :remote-method="searchWarehouses"
-                  :loading="warehouseLoading"
+                  v-bind="warehouseSelectProps"
                   :disabled="readonly || sourced || loading || saving"
                   placeholder="请选择仓库"
                   ><ElOption
                     v-for="item in warehouses"
                     :key="item.value"
                     :value="item.value"
-                    :label="item.label" /></ElSelect></ElFormItem
+                    :label="item.label"
+                    :disabled="item.disabled" /></ElSelect></ElFormItem
             ></ElCol>
             <ElCol v-if="kind === 'return'" :span="24"
               ><ElFormItem label="退货原因" prop="return_reason"

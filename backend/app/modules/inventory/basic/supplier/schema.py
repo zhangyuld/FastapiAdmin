@@ -7,6 +7,15 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.core.base_schema import BaseQueryParam, BaseSchema, UserByQueryParam, UserBySchema
 
 
+class SupplierOptionSchema(BaseModel):
+    """跨业务页面选项响应，仅包含标识、显示字段和状态。"""
+
+    id: int
+    supplier_code: str
+    supplier_name: str
+    status: int
+
+
 class SupplierBaseSchema(BaseModel):
     """供应商基础字段。"""
 

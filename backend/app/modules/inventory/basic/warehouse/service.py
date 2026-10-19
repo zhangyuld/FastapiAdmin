@@ -6,11 +6,13 @@ from app.core.exceptions import CustomException
 from app.utils.common_util import search_to_dict
 from app.utils.excel_util import ExcelUtil
 
+from ..option_schema import ArchiveOptionQuery
 from .crud import WarehouseCRUD
 from .schema import (
     WarehouseCreateSchema,
     WarehouseDeleteSchema,
     WarehouseExportSchema,
+    WarehouseOptionSchema,
     WarehouseOutSchema,
     WarehouseQueryParam,
     WarehouseStatusSchema,
@@ -35,6 +37,10 @@ class WarehouseService:
         self.auth = auth
         self.db = db
         self.crud = WarehouseCRUD(auth, db)
+
+    async def options(self, query: ArchiveOptionQuery) -> PageResultSchema[WarehouseOptionSchema]:
+        """供已登录业务页面读取精简档案，不复用管理列表响应。"""
+        return await self.crud.options(query)
 
     async def detail(self, id: int) -> WarehouseOutSchema:
         """查询仓库详情。"""

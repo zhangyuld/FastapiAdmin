@@ -11,10 +11,12 @@ from app.core.dependencies import AuthPermission, db_getter
 from app.core.router_class import OperationLogRoute
 from app.utils.common_util import bytes2file_response
 
+from ..option_schema import ArchiveOptionQuery
 from .schema import (
     WarehouseCreateSchema,
     WarehouseDeleteSchema,
     WarehouseExportSchema,
+    WarehouseOptionSchema,
     WarehouseOutSchema,
     WarehouseQueryParam,
     WarehouseStatusSchema,
@@ -23,6 +25,17 @@ from .schema import (
 from .service import WarehouseService
 
 WarehouseRouter = APIRouter(route_class=OperationLogRoute, prefix="/warehouse", tags=["仓库管理"])
+
+
+@WarehouseRouter.get("/options", summary="查询仓库轻量选项", response_model=ResponseSchema[PageResultSchema[WarehouseOptionSchema]])
+async def get_warehouse_options_controller(
+    auth: Annotated[AuthSchema, Security(AuthPermission())],
+    db: Annotated[AsyncSession, Depends(db_getter)],
+    query: Annotated[ArchiveOptionQuery, Query()],
+) -> JSONResponse:
+    """只校验有效登录和系统级访问规则，不要求基础档案查询权限。"""
+    result = await WarehouseService(auth, db).options(query)
+    return SuccessResponse(data=result)
 
 
 @WarehouseRouter.get("/detail/{id}", summary="查询仓库详情", response_model=ResponseSchema[WarehouseOutSchema])

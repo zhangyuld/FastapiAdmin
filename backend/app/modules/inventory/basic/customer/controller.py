@@ -11,10 +11,12 @@ from app.core.dependencies import AuthPermission, db_getter
 from app.core.router_class import OperationLogRoute
 from app.utils.common_util import bytes2file_response
 
+from ..option_schema import ArchiveOptionQuery
 from .schema import (
     CustomerCreateSchema,
     CustomerDeleteSchema,
     CustomerExportSchema,
+    CustomerOptionSchema,
     CustomerOutSchema,
     CustomerQueryParam,
     CustomerStatusSchema,
@@ -23,6 +25,17 @@ from .schema import (
 from .service import CustomerService
 
 CustomerRouter = APIRouter(route_class=OperationLogRoute, prefix="/customer", tags=["客户管理"])
+
+
+@CustomerRouter.get("/options", summary="查询客户轻量选项", response_model=ResponseSchema[PageResultSchema[CustomerOptionSchema]])
+async def get_customer_options_controller(
+    auth: Annotated[AuthSchema, Security(AuthPermission())],
+    db: Annotated[AsyncSession, Depends(db_getter)],
+    query: Annotated[ArchiveOptionQuery, Query()],
+) -> JSONResponse:
+    """只校验有效登录和系统级访问规则，不要求基础档案查询权限。"""
+    result = await CustomerService(auth, db).options(query)
+    return SuccessResponse(data=result)
 
 
 @CustomerRouter.get("/detail/{id}", summary="查询客户详情", response_model=ResponseSchema[CustomerOutSchema])

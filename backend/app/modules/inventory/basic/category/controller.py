@@ -11,6 +11,7 @@ from app.core.router_class import OperationLogRoute
 
 from .schema import (
     GoodsCategoryCreateSchema,
+    GoodsCategoryOptionSchema,
     GoodsCategoryOutSchema,
     GoodsCategoryQueryParam,
     GoodsCategoryTreeOutSchema,
@@ -19,6 +20,16 @@ from .schema import (
 from .service import GoodsCategoryService
 
 GoodsCategoryRouter = APIRouter(route_class=OperationLogRoute, prefix="/category", tags=["商品分类"])
+
+
+@GoodsCategoryRouter.get("/options", summary="查询商品分类轻量选项", response_model=ResponseSchema[list[GoodsCategoryOptionSchema]])
+async def get_goods_category_options_controller(
+    auth: Annotated[AuthSchema, Security(AuthPermission())],
+    db: Annotated[AsyncSession, Depends(db_getter)],
+    status: Annotated[int | None, Query(ge=0, le=1, description="启停状态，省略查询全部")] = None,
+) -> JSONResponse:
+    """已登录即可获取业务筛选分类，不要求分类管理权限。"""
+    return SuccessResponse(data=await GoodsCategoryService(auth, db).options(status))
 
 
 @GoodsCategoryRouter.get("/tree", summary="查询商品分类树", response_model=ResponseSchema[list[GoodsCategoryTreeOutSchema]])

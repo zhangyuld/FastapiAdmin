@@ -3,6 +3,16 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.core.base_schema import BaseQueryParam, BaseSchema, UserByQueryParam, UserBySchema
 
 
+class GoodsCategoryOptionSchema(BaseModel):
+    """分类选择树节点，不继承审计和管理字段。"""
+
+    id: int
+    name: str
+    parent_id: int | None
+    status: int
+    children: list["GoodsCategoryOptionSchema"] = Field(default_factory=list)
+
+
 class GoodsCategoryCreateSchema(BaseModel):
     """商品分类创建参数。"""
 

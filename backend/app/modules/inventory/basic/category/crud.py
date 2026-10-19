@@ -5,7 +5,7 @@ from app.core.base_crud import CRUDBase
 from app.core.base_schema import AuthSchema
 
 from ..model import GoodsCategoryModel, GoodsModel
-from .schema import GoodsCategoryCreateSchema, GoodsCategoryUpdateSchema
+from .schema import GoodsCategoryCreateSchema, GoodsCategoryOptionSchema, GoodsCategoryUpdateSchema
 
 
 class GoodsCategoryCRUD(CRUDBase[GoodsCategoryModel, GoodsCategoryCreateSchema, GoodsCategoryUpdateSchema]):
@@ -13,6 +13,16 @@ class GoodsCategoryCRUD(CRUDBase[GoodsCategoryModel, GoodsCategoryCreateSchema, 
 
     def __init__(self, auth: AuthSchema, db: AsyncSession) -> None:
         super().__init__(model=GoodsCategoryModel, auth=auth, db=db, enforce_data_scope=False)
+
+    async def options(self, status: int | None = None) -> list[GoodsCategoryOptionSchema]:
+        """只投影分类选择字段，沿用共享档案范围和软删除过滤。"""
+        conditions = await self._build_conditions(status=status)
+        result = await self.db.execute(
+            select(GoodsCategoryModel.id, GoodsCategoryModel.name, GoodsCategoryModel.parent_id, GoodsCategoryModel.status)
+            .where(*conditions)
+            .order_by(GoodsCategoryModel.sort.asc(), GoodsCategoryModel.id.asc())
+        )
+        return [GoodsCategoryOptionSchema.model_validate(row) for row in result.mappings()]
 
     async def get_same_level(
         self,
@@ -37,9 +47,13 @@ class GoodsCategoryCRUD(CRUDBase[GoodsCategoryModel, GoodsCategoryCreateSchema, 
 
     async def count_goods(self, category_ids: list[int]) -> int:
         """统计分类下尚未删除的商品数量。"""
-        statement = select(func.count()).select_from(GoodsModel).where(
-            GoodsModel.is_deleted.is_(False),
-            GoodsModel.category_id.in_(category_ids),
+        statement = (
+            select(func.count())
+            .select_from(GoodsModel)
+            .where(
+                GoodsModel.is_deleted.is_(False),
+                GoodsModel.category_id.in_(category_ids),
+            )
         )
         result = await self.db.execute(statement)
         return result.scalar() or 0

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import GoodsCategoryAPI, { type GoodsCategoryItem } from "@/api/module_inventory/basic/category";
+import { getCategoryOptions, type CategoryOptionItem } from "@/api/module_inventory/basic/options";
 import GoodsAPI, {
   GOODS_EXPORT_FIELDS,
   type GoodsExportField,
@@ -117,7 +117,7 @@ const searchItems = computed<SearchFormItem[]>(() => [
 ]);
 
 /** 将商品分类树转换为表单选项。 */
-function buildCategoryOptions(rows: GoodsCategoryItem[]): OptionType[] {
+function buildCategoryOptions(rows: CategoryOptionItem[]): OptionType[] {
   return rows
     .filter((item) => item.id)
     .map((item) => ({
@@ -128,10 +128,10 @@ function buildCategoryOptions(rows: GoodsCategoryItem[]): OptionType[] {
 }
 
 /** 加载商品分类筛选和表单选项。 */
-async function loadCategoryOptions() {
+async function loadCategoryOptions(): Promise<void> {
   categoryLoading.value = true;
   try {
-    const response = await GoodsCategoryAPI.listCategoryTree();
+    const response = await getCategoryOptions();
     categoryOptions.value = buildCategoryOptions(response.data.data ?? []);
   } catch (error: unknown) {
     if (import.meta.env.DEV) console.error(error);

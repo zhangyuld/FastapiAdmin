@@ -43,42 +43,22 @@ const showSearch = ref(true);
 const dialog = reactive<DialogState>({ visible: false, mode: "create" });
 const busy = ref(false);
 const tableRef = ref<{ elTableRef?: { clearSelection: () => void } }>();
-const {
-  suppliers,
-  warehouses,
-  supplierLoading,
-  warehouseLoading,
-  searchSuppliers,
-  searchWarehouses,
-} = usePurchaseOptions();
+const { supplierSelectProps, warehouseSelectProps, searchSuppliers, searchWarehouses } =
+  usePurchaseOptions();
 const items = computed<SearchFormItem[]>(() => [
   { label: "单据编号", key: "order_no", type: "input", clearable: true, span: 6 },
   {
     label: "供应商",
     key: "supplier_id",
     type: "select",
-    props: {
-      options: suppliers.value,
-      filterable: true,
-      remote: true,
-      remoteMethod: searchSuppliers,
-      loading: supplierLoading.value,
-      clearable: true,
-    },
+    props: supplierSelectProps.value,
     span: 6,
   },
   {
     label: "仓库",
     key: "warehouse_id",
     type: "select",
-    props: {
-      options: warehouses.value,
-      filterable: true,
-      remote: true,
-      remoteMethod: searchWarehouses,
-      loading: warehouseLoading.value,
-      clearable: true,
-    },
+    props: warehouseSelectProps.value,
     span: 6,
   },
   {

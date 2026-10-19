@@ -1,11 +1,20 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { ElMessage, type FormRules } from "element-plus";
 import AuthAPI, { type CaptchaInfo, type LoginFormData } from "@/api/module_system/auth";
 import { useUserStore, useSettingsStore } from "@stores";
 import { useProductConfigStore } from "@/store/modules/product-config.store";
 import FaLoginAccountForm from "./components/forms/FaLoginAccountForm.vue";
+import LoginProductNav from "./components/product/LoginProductNav.vue";
+import LoginOverviewSection from "./components/product/LoginOverviewSection.vue";
+import LoginFeatureSection from "./components/product/LoginFeatureSection.vue";
+import { loginProductSections } from "./login-product";
+import { useLoginSectionNavigation } from "./composables/useLoginSectionNavigation";
 
 defineOptions({ name: "Login" });
+const pageRoot = ref<HTMLElement>();
+const { activeSection, navigateTo, returnToLogin } = useLoginSectionNavigation({ root: pageRoot });
 /** 账号表单、验证码和请求状态，不包含其他认证渠道。 */
 interface LoginPageState {
   loading: boolean;
@@ -28,6 +37,10 @@ const form = reactive<LoginFormData>({
   captcha_key: "",
   login_type: "PC端",
 });
+/** 表单模型保持同一响应式对象，导航和子组件更新不会重建输入。 */
+function updateLoginForm(value: LoginFormData): void {
+  Object.assign(form, value);
+}
 const captcha = reactive<CaptchaInfo>({ enable: true, key: "", img_base: "" });
 const passing = ref(false);
 const attempted = ref(false);
@@ -118,126 +131,189 @@ onBeforeUnmount(() => {
 });
 </script>
 <template>
-  <main class="zhicang-login">
-    <div class="zhicang-login__content">
-      <section class="zhicang-login__intro">
-        <FaLogo />
-        <h1>智仓云</h1>
-        <p class="zhicang-login__lead">让采购、销售、库存与往来账目清晰协同。</p>
-        <p>
-          从商品档案到出入库、退货与盘点，贯通日常业务；通过经营报表掌握库存价值、应收应付与商品毛利。
-        </p>
-        <ul>
-          <li>采购销售 · 业务单据有据可查</li>
-          <li>库存管理 · 数量成本清晰可见</li>
-          <li>往来报表 · 经营数据及时掌握</li>
-        </ul>
-      </section>
-      <section class="zhicang-login__account" aria-label="账号登录">
-        <h2>账号登录</h2>
-        <ElAlert v-if="state.captchaFailed" title="验证码加载失败" type="error" :closable="false"
-          ><ElButton link @click="loadCaptcha">重试</ElButton></ElAlert
-        >
-        <FaLoginAccountForm
-          ref="account"
-          v-model:login-form="form"
-          v-model:is-passing="passing"
-          v-model:is-click-pass="attempted"
-          account-only
-          :rules="rules"
-          :captcha-state="captcha"
-          :code-loading="state.captchaLoading"
-          demo-account-key="super"
-          :accounts="[]"
-          :form-key="state.formKey"
-          :is-dark="settings.isDark"
-          drag-verify-text-color="var(--el-text-color-secondary)"
-          :loading="state.loading"
-          @submit="submit"
-        />
-      </section>
-    </div>
-  </main>
+  <div ref="pageRoot" class="zhicang-login">
+    <a class="zhicang-login__skip" href="#login-account" @click.prevent="returnToLogin"
+      >跳转到账号登录</a
+    >
+    <LoginProductNav
+      :active-section="activeSection"
+      @navigate="navigateTo"
+      @login="returnToLogin"
+    />
+    <main>
+      <LoginOverviewSection @explore="navigateTo('trade')">
+        <template #account>
+          <section
+            id="login-account"
+            class="zhicang-login__account"
+            aria-labelledby="login-heading"
+          >
+            <p class="zhicang-login__welcome">欢迎回来</p>
+            <h2 id="login-heading">登录智仓云</h2>
+            <p class="zhicang-login__hint">进入你的经营工作台</p>
+            <ElAlert
+              v-if="state.captchaFailed"
+              title="验证码加载失败"
+              type="error"
+              :closable="false"
+              ><ElButton link @click="loadCaptcha">重试</ElButton></ElAlert
+            >
+            <FaLoginAccountForm
+              ref="account"
+              :login-form="form"
+              @update:login-form="updateLoginForm"
+              v-model:is-passing="passing"
+              v-model:is-click-pass="attempted"
+              account-only
+              :rules="rules"
+              :captcha-state="captcha"
+              :code-loading="state.captchaLoading"
+              demo-account-key="super"
+              :accounts="[]"
+              :form-key="state.formKey"
+              :is-dark="settings.isDark"
+              drag-verify-text-color="var(--el-text-color-secondary)"
+              :loading="state.loading"
+              @submit="submit"
+            />
+          </section>
+        </template>
+      </LoginOverviewSection>
+      <LoginFeatureSection
+        v-for="section in loginProductSections"
+        :key="section.id"
+        :section="section"
+      />
+    </main>
+    <footer class="zhicang-login__footer">
+      <span>智仓云 · 让经营心中有数</span
+      ><button type="button" @click="returnToLogin">
+        登录工作台 <FaSvgIcon icon="ri:arrow-right-line" :size="16" />
+      </button>
+    </footer>
+  </div>
 </template>
 <style scoped lang="scss">
 .zhicang-login {
-  display: flex;
-  align-items: center;
-  min-height: 100dvh;
-  padding: 48px 24px;
-  background: var(--el-bg-color-page);
+  --login-surface: #fff;
+  --login-soft: #f4f8fc;
+  --login-mint: #f2f9f7;
+  --login-border: #e1e9f1;
+  --login-text: #1e303f;
+  --login-muted: #617384;
+  --login-blue: #3e6de0;
+  --login-green: #16856e;
 
-  &__content {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 360px;
-    gap: 96px;
-    width: min(100%, 980px);
-    margin: 0 auto;
-  }
+  height: 100dvh;
+  overflow: auto;
+  overscroll-behavior-y: contain;
+  color: var(--login-text);
+  letter-spacing: 0;
+  background: var(--login-surface);
 
-  &__intro {
-    min-width: 0;
-    padding-top: 16px;
-    color: var(--el-text-color-secondary);
+  &__skip {
+    position: fixed;
+    top: 8px;
+    left: 16px;
+    z-index: 30;
+    padding: 12px;
+    color: var(--login-blue);
+    background: var(--login-surface);
+    transform: translateY(-150%);
 
-    h1 {
-      margin: 24px 0 20px;
-      font-size: 42px;
-      font-weight: 600;
-      color: var(--el-text-color-primary);
+    &:focus {
+      transform: none;
     }
-
-    p {
-      font-size: 15px;
-      line-height: 1.9;
-    }
-
-    ul {
-      padding: 0;
-      margin-top: 28px;
-      list-style: none;
-    }
-
-    li {
-      margin: 14px 0;
-      font-size: 14px;
-    }
-  }
-
-  &__lead {
-    color: var(--el-text-color-primary);
   }
 
   &__account {
-    align-self: center;
-    min-width: 0;
-
     h2 {
-      margin: 0 0 24px;
-      font-size: 22px;
+      margin: 0 0 8px;
+      font-size: 26px;
+      font-weight: 600;
+    }
+
+    :deep(.el-input__wrapper) {
+      min-height: 44px;
+      background: var(--login-surface);
+    }
+
+    :deep(.el-button--primary) {
+      min-height: 44px;
+      color: #fff;
+      background: #3e6de0;
+      border-color: #3e6de0;
     }
   }
-  @media (width <= 760px) {
-    padding: 32px 20px;
 
-    &__content {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 30px;
-      max-width: 420px;
+  &__welcome {
+    margin: 0 0 14px;
+    font-size: 13px;
+    color: var(--login-green);
+  }
+
+  &__hint {
+    margin: 0 0 26px;
+    font-size: 13px;
+    color: var(--login-muted);
+  }
+
+  &__footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+    width: min(1120px, calc(100% - 40px));
+    min-height: 100px;
+    padding: 24px 0;
+    margin: 0 auto;
+    font-size: 13px;
+    color: var(--login-muted);
+
+    button {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 0;
+      color: var(--login-blue);
+      cursor: pointer;
+      background: none;
+      border: 0;
     }
+  }
 
-    &__intro {
-      padding-top: 0;
-
-      h1 {
-        margin: 16px 0;
-        font-size: 30px;
-      }
-
-      ul {
-        display: none;
-      }
+  :deep(a:focus-visible),
+  :deep(button:focus-visible) {
+    outline: 2px solid var(--login-blue);
+    outline-offset: 4px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    &__account {
+      animation: login-appear 400ms ease-out;
     }
+  }
+}
+
+:global(html.dark .zhicang-login) {
+  --login-surface: #191e23;
+  --login-soft: #20282e;
+  --login-mint: #202e2b;
+  --login-border: #35414a;
+  --login-text: #edf2f5;
+  --login-muted: #a9bac5;
+  --login-blue: #8baaff;
+  --login-green: #68cdb0;
+}
+@keyframes login-appear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>

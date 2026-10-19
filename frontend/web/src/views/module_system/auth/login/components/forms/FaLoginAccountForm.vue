@@ -32,6 +32,9 @@
         <ElInput
           class="custom-height"
           v-model.trim="loginForm.username"
+          name="username"
+          autocomplete="username"
+          aria-label="账号"
           clearable
           :placeholder="$t('login.placeholder.username')"
         >
@@ -46,8 +49,10 @@
           <ElInput
             class="custom-height"
             v-model.trim="loginForm.password"
+            name="password"
+            aria-label="密码"
             type="password"
-            autocomplete="off"
+            autocomplete="current-password"
             show-password
             clearable
             :placeholder="$t('login.placeholder.password')"
@@ -135,9 +140,10 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import { Lock, User } from "@element-plus/icons-vue";
 import type { CaptchaInfo, LoginFormData } from "@/api/module_system/auth";
-import type { FormRules } from "element-plus";
+import type { FormInstance, FormRules } from "element-plus";
 import type { Account, AccountKey } from "@views/module_system/auth/login/types";
 
 const loginForm = defineModel<LoginFormData>("loginForm", { required: true });
@@ -147,14 +153,23 @@ defineOptions({ name: "FaLoginAccountForm" });
 interface Props {
   /** 产品账号登录禁用演示填充及其他认证入口。 */
   accountOnly?: boolean;
+  /** 账号密码校验规则。 */
   rules: FormRules;
+  /** 服务端验证码配置。 */
   captchaState: CaptchaInfo;
+  /** 验证码请求状态。 */
   codeLoading: boolean;
+  /** 仅旧版演示登录使用的预选账号。 */
   demoAccountKey: AccountKey;
+  /** 仅旧版演示登录可选的账号。 */
   accounts: Account[];
+  /** 认证失败后重建表单校验及滑块。 */
   formKey: number | string;
+  /** 滑块的主题模式。 */
   isDark: boolean;
+  /** 滑块提示文字颜色。 */
   dragVerifyTextColor: string;
+  /** 账号请求状态。 */
   loading: boolean;
 }
 
@@ -176,11 +191,12 @@ interface Emits {
 
 const emit = defineEmits<Emits>();
 
-const formRef = ref();
+const formRef = ref<FormInstance>();
 const dragVerifyRef = ref<{ reset?: () => void } | null>(null);
 const isCapsLock = ref(false);
 
-function onPasswordKeyup(event: KeyboardEvent) {
+/** 密码输入时检测大写锁定，保留现有回车提交行为。 */
+function onPasswordKeyup(event: KeyboardEvent): void {
   if (event instanceof KeyboardEvent) {
     isCapsLock.value = event.getModifierState("CapsLock");
     if (event.key === "Enter") {
@@ -189,9 +205,17 @@ function onPasswordKeyup(event: KeyboardEvent) {
   }
 }
 
-defineExpose({
-  validate: () => formRef.value?.validate?.(),
-  clearValidate: () => formRef.value?.clearValidate?.(),
-  resetDragVerify: () => dragVerifyRef.value?.reset?.(),
-});
+/** 执行账号表单校验，尚未挂载时禁止提交。 */
+async function validate(): Promise<boolean> {
+  return (await formRef.value?.validate()) ?? false;
+}
+/** 清除现有字段校验提示。 */
+function clearValidate(): void {
+  formRef.value?.clearValidate();
+}
+/** 重置滑块展示，不变更服务端认证状态。 */
+function resetDragVerify(): void {
+  dragVerifyRef.value?.reset?.();
+}
+defineExpose({ validate, clearValidate, resetDragVerify });
 </script>

@@ -6,6 +6,7 @@ import { router } from "@/router";
 import { useWorktabStore } from "./worktab.store";
 import { useMenuStore } from "./menu.store";
 import { useConfigStore } from "./config.store";
+import { useProductConfigStore } from "./product-config.store";
 import { Auth, setPageTitle, StorageConfig } from "@utils";
 import AuthAPI, { type LoginFormData } from "@/api/module_system/auth";
 import UserAPI from "@/api/module_system/user";
@@ -162,6 +163,7 @@ export const useUserStore = defineStore(
         const menus: MenuTable[] = data?.menus || [];
         delete data?.menus;
         info.value = { ...info.value, ...data } as Partial<UserInfo>;
+        await useProductConfigStore().loadProfile();
         setRoute(menus);
       } catch (error) {
         console.error("获取用户信息失败:", error);
@@ -195,9 +197,10 @@ export const useUserStore = defineStore(
      * 设置路由
      */
     function setRoute(routers: MenuTable[]) {
-      routeList.value = routers;
+      const visible = useProductConfigStore().filterMenus(routers);
+      routeList.value = visible;
       hasGetRoute.value = true;
-      setPermissions(routers);
+      setPermissions(visible);
     }
 
     /**
@@ -212,7 +215,7 @@ export const useUserStore = defineStore(
         .flatMap((role) => role.menus)
         .filter((menu): menu is MenuTable => menu !== undefined);
 
-      const allMenus = [...menus, ...roleMenus];
+      const allMenus = [...menus, ...useProductConfigStore().filterMenus(roleMenus)];
 
       const permissionSet = new Set<string>();
       const collect = (items: MenuTable[]) => {
@@ -313,6 +316,7 @@ export const useUserStore = defineStore(
      * 重置所有状态
      */
     function resetAllState() {
+      useProductConfigStore().reset();
       Auth.clearAuth();
       info.value = {};
       routeList.value = [];

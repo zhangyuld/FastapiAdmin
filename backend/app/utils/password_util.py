@@ -23,6 +23,11 @@ _PASSWORD_CLASSES = (re.compile(r"[A-Za-z]"), re.compile(r"\d"), re.compile(r"[^
 
 class PwdUtil:
     @staticmethod
+    def default_initial_password(username: str, ordinary_password: str = "zcy123456@#") -> str:
+        """按账号选择初始口令，不用于登录校验、改密或重置已有账号。"""
+        return {"super": "super123456@#", "admin": "admin123456@#"}.get(username, ordinary_password)
+
+    @staticmethod
     def hash_password(password: str) -> str:
         salt = os.urandom(_PBKDF2_SALT_LEN)
         dk = hashlib.pbkdf2_hmac(_PBKDF2_ALGO, password.encode(), salt, _PBKDF2_ITERATIONS)

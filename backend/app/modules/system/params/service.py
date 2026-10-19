@@ -10,6 +10,7 @@ from app.core.database import async_db_session
 from app.core.exceptions import CustomException
 from app.core.logger import logger
 from app.core.redis_crud import RedisCURD
+from app.modules.system.product_config.crud import PRODUCT_CONFIG_KEY
 
 from .crud import ParamsCRUD
 from .schema import ParamsOutSchema, ParamsUpdateSchema
@@ -34,6 +35,8 @@ class ParamsService:
         - ParamsOutSchema: 更新后的参数响应模型
         """
         exist_obj = await ParamsCRUD(self.auth, self.db).get_or_404(id=id, msg="更新失败，该数据不存在")
+        if exist_obj.config_key == PRODUCT_CONFIG_KEY or exist_obj.config_key.startswith("zhicang_init_"):
+            raise CustomException(msg="受管配置请使用专用发布或初始化命令", status_code=403)
         if exist_obj.config_key != data.config_key:
             raise CustomException(msg="更新失败，系统配置key不允许修改")
 
@@ -75,6 +78,8 @@ class ParamsService:
         """将 DB 配置写入 Redis，返回对应的 dict 列表。"""
         configs: list[dict] = []
         for config in config_obj:
+            if config.config_key == PRODUCT_CONFIG_KEY or config.config_key.startswith("zhicang_init_"):
+                continue
             redis_key = f"{RedisInitKeyConfig.SYSTEM_CONFIG.key}:{config.config_key}"
             out = ParamsOutSchema.model_validate(config)
             payload = out.model_dump(mode="json")
@@ -83,7 +88,7 @@ class ParamsService:
                 configs.append(out.model_dump())
             except Exception as e:
                 logger.error(f"❌️ 缓存系统配置失败: {redis_key}: {e}")
-        return configs
+        return [config for config in configs if config.get("config_key") != PRODUCT_CONFIG_KEY and not str(config.get("config_key", "")).startswith("zhicang_init_")]
 
     @staticmethod
     async def init_cache(redis: Redis) -> None:
@@ -115,4 +120,4 @@ class ParamsService:
             config_obj = await ParamsService._load_all_configs_from_db()
             if config_obj:
                 configs = await ParamsService._sync_configs_to_redis(redis, config_obj)
-        return configs
+        return [config for config in configs if config.get("config_key") != PRODUCT_CONFIG_KEY and not str(config.get("config_key", "")).startswith("zhicang_init_")]

@@ -84,6 +84,9 @@ async def websocket_authenticate(websocket: WebSocket) -> tuple[AuthSchema, str 
         raise CustomException(msg="未提供认证令牌")
     async with async_db_session() as db:
         auth = await _authenticate(token, db, websocket.app.state.redis)
+        from app.modules.system.product_config.service import ProductConfigService
+
+        await ProductConfigService(db).require_path(websocket.scope.get("path", "").removeprefix(settings.ROOT_PATH), auth)
     return auth, subprotocol
 
 
@@ -203,7 +206,7 @@ class AuthPermission:
         """
         self.permissions = permissions or []
 
-    async def __call__(self, auth: AuthSchema = Depends(get_current_user)) -> AuthSchema:
+    async def __call__(self, auth: AuthSchema = Depends(get_current_user), request: Request = None, db: AsyncSession = Depends(db_getter)) -> AuthSchema:
         """调用权限验证
 
         参数:
@@ -212,6 +215,10 @@ class AuthPermission:
         返回:
         - AuthSchema: 已认证的权限信息对象。
         """
+        if request is not None:
+            from app.modules.system.product_config.service import ProductConfigService
+
+            await ProductConfigService(db).require_path(request.scope.get("path", "").removeprefix(settings.ROOT_PATH), auth)
         user = auth.user
         if user.id is None or user.is_superuser:
             return auth

@@ -22,10 +22,6 @@ import Exception404 from "@views/exception/404/index.vue";
 import Exception500 from "@views/exception/500/index.vue";
 import DashboardHome from "@views/dashboard/home/index.vue";
 import FastlinkProfile from "@views/fastlink/current/profile.vue";
-import FastlinkChangelog from "@views/fastlink/changelog/index.vue";
-import FastlinkPricing from "@views/fastlink/pricing/index.vue";
-import FastlinkTutorial from "@views/fastlink/tutorial/index.vue";
-import FastlinkFachat from "@views/fastlink/fachat/index.vue";
 
 // ──────── IframeRouteManager ────────
 
@@ -233,54 +229,6 @@ export const staticRoutes: AppRouteRecordRaw[] = [
             name: "FastlinkProfile",
             meta: { title: $t("menus.system.userCenter"), icon: "ri:user-line", hidden: true },
             component: FastlinkProfile,
-          },
-          {
-            path: "changelog",
-            name: "FastlinkChangeLog",
-            meta: {
-              title: $t("menus.changelog.title"),
-              icon: "ri:draft-line",
-              hidden: true,
-              keepAlive: true,
-              isHideTab: true,
-            },
-            component: FastlinkChangelog,
-          },
-          {
-            path: "pricing",
-            name: "FastlinkPricing",
-            meta: {
-              title: $t("menus.dashboard.pricing"),
-              icon: "ri:money-cny-box-line",
-              hidden: true,
-              keepAlive: true,
-              isHideTab: true,
-            },
-            component: FastlinkPricing,
-          },
-          {
-            path: "tutorial",
-            name: "FastlinkTutorial",
-            meta: {
-              title: $t("menus.dashboard.tutorial"),
-              icon: "ri:book-2-line",
-              hidden: true,
-              keepAlive: true,
-              isHideTab: true,
-            },
-            component: FastlinkTutorial,
-          },
-          {
-            path: "fachat",
-            name: "FastlinkFachat",
-            meta: {
-              title: $t("menus.fachat.title"),
-              icon: "ri:message-3-line",
-              hidden: true,
-              keepAlive: true,
-              isHideTab: true,
-            },
-            component: FastlinkFachat,
           },
         ],
       },

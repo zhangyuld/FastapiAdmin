@@ -1,15 +1,12 @@
-import asyncio
 import json
 from typing import Any
 
-from sqlalchemy import func, inspect, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.enums import EnvironmentEnum
-from app.config.path_conf import ALEMBIC_VERSION_DIR, BASE_DIR, SCRIPT_DIR, STATIC_DIR
-from app.config.setting import settings
+from app.config.path_conf import SCRIPT_DIR, STATIC_DIR
 from app.core.base_model import MappedBase
-from app.core.database import async_db_session, async_engine, create_tables
+from app.core.database import async_db_session
 from app.core.logger import logger
 from app.modules.system.dept.model import DeptModel
 from app.modules.system.dict.model import DictDataModel, DictTypeModel
@@ -59,106 +56,10 @@ class InitializeData:
 
     @staticmethod
     async def __apply_migrations() -> None:
-        """将数据库 schema 带到模型定义的最新的版本（开源项目要求任意方言开箱即用）。"""
-        from alembic import command
-        from alembic.config import Config
+        """测试/兼容入口显式调用，不自动生成迁移或删除未知版本。"""
+        from app.scripts.deployment.structure import ensure_structure
 
-        alembic_cfg = Config(str(BASE_DIR / "alembic.ini"))
-
-        # 以 sys_menu 作为空库哨兵（按依赖排序最先建表），它不存在即视为全新空库
-        async with async_engine.connect() as conn:
-            has_sentinel = await conn.run_sync(lambda sync_conn: inspect(sync_conn).has_table(MenuModel.__tablename__))
-        empty_db = not has_sentinel
-
-        if empty_db:
-            await create_tables()
-            if any(p.name != "__init__.py" for p in ALEMBIC_VERSION_DIR.glob("*.py")):
-                # 仓库已有迁移历史：标记为 head，保证后续增量迁移能对自举库正确应用
-                await asyncio.to_thread(command.stamp, alembic_cfg, "head")
-                logger.info("✅ 空库：已按模型创建全表结构，并标记迁移历史为 head")
-            else:
-                logger.info("✅ 空库：已按模型创建全表结构（仓库暂无迁移历史，跳过 stamp）")
-        else:
-            # 先把数据库带到最新版本，否则 autogenerate 会因
-            # "Target database is not up to date" 无法对比模型与库结构
-            await InitializeData.__clear_unresolvable_alembic_version(alembic_cfg)
-            await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
-            logger.info("✅ 数据库迁移已应用（alembic upgrade head）")
-
-        # dev 环境：模型有变更时自动生成迁移文件（无变更时 env.py 的 process_revision_directives 会拦截，不产出文件）
-        if settings.ENVIRONMENT == EnvironmentEnum.DEV:
-            autogen = await asyncio.to_thread(InitializeData.__autogen_migration, alembic_cfg)
-            if autogen:
-                # 生成了新的迁移文件，应用之
-                await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
-                logger.info("✅ dev 自动生成的迁移已应用（检测到模型变更）")
-            elif autogen is False:
-                # 仅"无模型变更"才打此日志；失败/拦截（None）已由 warning/error 说明，不再输出易误导的 info
-                logger.info("✅ dev 环境自动迁移检查完成（模型无变更）")
-
-    @staticmethod
-    async def __clear_unresolvable_alembic_version(alembic_cfg) -> None:
-        """清掉数据库里无法被仓库迁移脚本解析的版本号（僵尸 revision）。
-
-        本仓库不提交迁移历史（versions/ 仅保留 __init__.py），库里却可能残留早前
-        dev 自动生成、随后被当作未跟踪文件清理掉的迁移版本号。此时 upgrade 会抛
-        "Can't locate revision identified by 'xxx'"，让整个后端启动失败。
-        这里只删除解析不了的版本号，保留可解析的，交由后续自动迁移按当前模型重新对齐。
-        """
-        from alembic.script import ScriptDirectory
-        from sqlalchemy import text
-
-        known = {script.revision for script in ScriptDirectory.from_config(alembic_cfg).walk_revisions()}
-        async with async_engine.begin() as conn:
-            has_version_table = await conn.run_sync(lambda sync_conn: inspect(sync_conn).has_table("alembic_version"))
-            if not has_version_table:
-                return
-            current = {row[0] for row in await conn.execute(text("select version_num from alembic_version"))}
-            stale = current - known
-            if not stale:
-                return
-            for rev in stale:
-                await conn.execute(text("delete from alembic_version where version_num = :rev"), {"rev": rev})
-            hint = "；仓库存在迁移历史时请手动核对是否需要 alembic stamp" if known else ""
-            logger.warning(f"⚠️ 已清理无法解析的迁移版本记录 {sorted(stale)}（对应脚本已不存在）{hint}")
-
-    @staticmethod
-    def __autogen_migration(alembic_cfg) -> bool | None:
-        """dev 环境自动生成迁移文件。
-
-        返回:
-        - True: 生成了新的迁移文件（需再次 upgrade 应用）
-        - False: 模型无变更（env.py 拦截空迁移，未产出文件）
-        - None: 生成失败，或含破坏性 DROP 被拦截删除（warning/error 已说明原因）
-        """
-        import re
-        from datetime import datetime
-
-        from alembic import command
-
-        before = set(ALEMBIC_VERSION_DIR.glob("*.py"))
-        try:
-            command.revision(alembic_cfg, autogenerate=True, message=f"自动迁移-{datetime.now():%m%d%H%M}")
-        except Exception as e:  # noqa: BLE001
-            logger.warning(f"⚠️ 自动生成迁移失败（{e}），跳过自动生成，仅应用已有迁移")
-            return None
-
-        new_files = set(ALEMBIC_VERSION_DIR.glob("*.py")) - before
-        if not new_files:
-            return False
-
-        # drop_* 覆盖 drop_table/drop_column/drop_index/drop_constraint 等；op.execute 拦手写 DROP 语句
-        dangerous = re.compile(r"""^\s*op\.drop_\w+\(|op\.execute\(["'].*\bDROP\b""", re.MULTILINE)
-        for path in new_files:
-            content = path.read_text(encoding="utf-8")
-            # 仅检查 upgrade 段（downgrade 中的 DROP 是正常回滚逻辑）
-            upgrade_part = content.split("def upgrade", 1)[-1].split("def downgrade", 1)[0]
-            if dangerous.search(upgrade_part):
-                path.unlink()
-                logger.error(f"🚫 自动迁移 {path.name} 含破坏性 DROP 操作，已删除并中止自动应用")
-                logger.error("请手动执行 python main.py revision --env=dev 生成迁移，审查确认后 python main.py upgrade --env=dev")
-                return None
-        return True
+        await ensure_structure()
 
     async def __init_data(self, db: AsyncSession) -> None:
         """按依赖顺序初始化各表种子数据（表已有数据则整体跳过，实现幂等）"""

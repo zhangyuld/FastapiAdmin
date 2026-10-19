@@ -1,4 +1,4 @@
-<!-- 系统 logo：优先使用接口 sys_web_logo，缺省用内置图 -->
+<!-- 系统 Logo 默认使用智仓云本地品牌图片。 -->
 <template>
   <div class="flex items-center justify-center">
     <img
@@ -12,14 +12,14 @@
 </template>
 
 <script setup lang="ts">
-import defaultLogoUrl from "@fa_imgs/logo.svg";
+import defaultLogoUrl from "@/assets/images/login/logo.png";
 
 defineOptions({ name: "FaLogo" });
 
 interface Props {
   /** logo 大小 */
   size?: number | string;
-  /** 自定义地址（如配置接口 sys_web_logo）；不传则用默认资源 */
+  /** 显式自定义地址；系统品牌入口不传入后端图片配置 */
   src?: string;
 }
 
@@ -36,7 +36,8 @@ const resolvedSrc = computed(() => {
   return custom || defaultLogoUrl;
 });
 
-function onImgError() {
+/** 自定义图片加载失败时回退到本地品牌图。 */
+function onImgError(): void {
   if (!fallbackTriggered.value) {
     fallbackTriggered.value = true;
   }

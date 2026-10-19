@@ -18,24 +18,22 @@
 import { computed } from "vue";
 import appConfig from "@/config";
 import type { FastEnterApplication, FastEnterQuickLink } from "@/types/config";
+import { useProductConfigStore } from "@/store/modules/product-config.store";
 export function useFastEnter() {
+  const product = useProductConfigStore();
   // 获取快速入口配置
   const fastEnterConfig = computed(() => appConfig.fastEnter);
 
   // 获取启用的应用列表（按排序权重排序）
   const enabledApplications = computed<FastEnterApplication[]>(() => {
-    if (!fastEnterConfig.value?.applications) return [];
-
-    return fastEnterConfig.value.applications
-      .filter((app) => app.enabled !== false)
-      .sort((a, b) => (a.order || 0) - (b.order || 0));
+    // 原框架应用列表保留在配置文件，但本产品暂不发布应用入口。
+    return [];
   });
 
   // 获取启用的快速链接（按排序权重排序）
   const enabledQuickLinks = computed<FastEnterQuickLink[]>(() => {
-    if (!fastEnterConfig.value?.quickLinks) return [];
-
-    return fastEnterConfig.value.quickLinks
+    if (!product.can("quick_entry")) return [];
+    return (product.profile?.quick_links ?? [])
       .filter((link) => link.enabled !== false)
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   });

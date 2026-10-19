@@ -38,8 +38,10 @@ defineSlots<{ actions(): unknown; default(): unknown }>();
 <style scoped lang="scss">
 .home-panel {
   min-width: 0;
-  padding: 20px 0;
-  border-top: 1px solid var(--el-border-color-lighter);
+  padding: 20px;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 6px;
 
   header {
     display: flex;
@@ -67,6 +69,10 @@ defineSlots<{ actions(): unknown; default(): unknown }>();
   &__body {
     min-width: 0;
     min-height: 180px;
+  }
+
+  @media (width <= 480px) {
+    padding: 14px;
   }
 }
 </style>

@@ -10,7 +10,7 @@
       :validate-on-rule-change="false"
       @keyup.enter="$emit('submit')"
     >
-      <ElFormItem>
+      <ElFormItem v-if="!accountOnly">
         <ElSelect
           :model-value="demoAccountKey"
           class="custom-height w-full"
@@ -61,7 +61,7 @@
       </ElTooltip>
 
       <div class="login-form-tail flex flex-col gap-[1.1rem]">
-        <div class="relative pb-3">
+        <div v-if="captchaState.enable" class="relative pb-3">
           <div
             class="relative z-2 overflow-hidden select-none rounded-lg border border-transparent transition duration-300"
             :class="{ 'border-[#FF4E4F]!': !isPassing && isClickPass }"
@@ -90,6 +90,7 @@
             {{ $t("login.rememberPwd") }}
           </ElCheckbox>
           <ElLink
+            v-if="!accountOnly"
             type="primary"
             underline="never"
             class="inline-flex items-center text-sm leading-[inherit]!"
@@ -111,7 +112,7 @@
           </ElButton>
         </div>
 
-        <div class="login-secondary-actions grid grid-cols-2 gap-2">
+        <div v-if="!accountOnly" class="login-secondary-actions grid grid-cols-2 gap-2">
           <ElButton class="login-secondary-btn" plain @click="$emit('openMobile')">
             {{ $t("login.mobileLogin") }}
           </ElButton>
@@ -122,9 +123,10 @@
       </div>
     </ElForm>
 
-    <FaLoginThirdPartySection @oauth="$emit('oauth', $event)" />
+    <FaLoginThirdPartySection v-if="!accountOnly" @oauth="$emit('oauth', $event)" />
 
     <FaLoginAuthLinkRow
+      v-if="!accountOnly"
       :hint="$t('login.noAccount')"
       :link-text="$t('login.register')"
       @link="$emit('register')"
@@ -143,6 +145,8 @@ const loginForm = defineModel<LoginFormData>("loginForm", { required: true });
 defineOptions({ name: "FaLoginAccountForm" });
 
 interface Props {
+  /** 产品账号登录禁用演示填充及其他认证入口。 */
+  accountOnly?: boolean;
   rules: FormRules;
   captchaState: CaptchaInfo;
   codeLoading: boolean;

@@ -20,6 +20,7 @@ import { storeToRefs } from "pinia";
 import { useSettingsStore } from "@stores";
 import { headerBarConfig } from "@/config/modules/headerBar";
 import type { HeaderBarFeatureConfig } from "@/types/config";
+import { useProductConfigStore } from "@/store/modules/product-config.store";
 
 /**
  * 顶部栏功能管理
@@ -27,6 +28,7 @@ import type { HeaderBarFeatureConfig } from "@/types/config";
  */
 export function useHeaderBar() {
   const settingStore = useSettingsStore();
+  const product = useProductConfigStore();
 
   // 获取顶部栏配置
   const headerBarConfigRef = computed<HeaderBarFeatureConfig>(() => headerBarConfig);
@@ -74,7 +76,7 @@ export function useHeaderBar() {
 
   // 检查快速入口是否显示
   const shouldShowFastEnter = computed(() => {
-    return isFeatureEnabled("fastEnter") && showFastEnter.value;
+    return product.can("quick_entry") && isFeatureEnabled("fastEnter") && showFastEnter.value;
   });
 
   // 检查面包屑是否显示
@@ -107,12 +109,12 @@ export function useHeaderBar() {
 
   // 检查设置面板是否显示
   const shouldShowSettings = computed(() => {
-    return isFeatureEnabled("settings");
+    return product.can("settings") && isFeatureEnabled("settings");
   });
 
   // 检查主题切换是否显示
   const shouldShowThemeToggle = computed(() => {
-    return isFeatureEnabled("themeToggle");
+    return product.can("settings") && isFeatureEnabled("themeToggle");
   });
 
   // 获取快速入口的最小宽度

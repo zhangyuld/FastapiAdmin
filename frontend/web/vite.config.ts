@@ -31,7 +31,8 @@ export default ({ mode }: { mode: string }) => {
     define: {
       __APP_INFO__: JSON.stringify(__APP_INFO__),
     },
-    base: env.VITE_BASE_URL,
+    // HTML 和运行时品牌资源拼接共用带尾斜杠的部署路径。
+    base: (env.VITE_BASE_URL || "/").replace(/\/?$/, "/"),
     server: {
       host: true,
       port: Number(env.VITE_PORT),

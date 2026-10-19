@@ -17,6 +17,7 @@ import {
   toggleSidebarColor,
 } from "@utils";
 import { defaultSettings } from "@/config/setting";
+import { MANAGED_SETTING_KEYS } from "@/api/module_system/product-settings";
 import { SidebarColor, ThemeMode } from "@/enums/settings/theme.enum";
 import type { LayoutMode } from "@/enums/settings/layout.enum";
 import type { MenuThemeType } from "@/types/store";
@@ -479,6 +480,17 @@ export const useSettingsStore = defineStore(
     persist: {
       key: "setting",
       storage: localStorage,
+      pick: [
+        ...MANAGED_SETTING_KEYS,
+        "theme",
+        "themeColor",
+        "sidebarColorScheme",
+        "layout",
+        "showTagsView",
+        "showSettings",
+        "showWatermark",
+        "showLangSelect",
+      ],
     },
   }
 );

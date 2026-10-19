@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import { defineAsyncComponent } from "vue";
+import { use } from "echarts/core";
+import { DataZoomComponent } from "echarts/components";
 import type { EChartsOption } from "@/plugins/echarts";
 import type { DashboardTrend, WarehouseStock, TrendPeriod } from "@/api/module_inventory/dashboard";
 import type { DashboardPanelState } from "../composables/useInventoryDashboard";
 import { formatAmount } from "../utils/metrics";
+import { buildWarehouseChartOptions, pointIndex } from "../utils/charts";
 import HomePanel from "./HomePanel.vue";
+
+// 首页按需补充缩放组件，不修改公共图表封装。
+use([DataZoomComponent]);
 /** 两类只读图表，期间只控制经营趋势。 */
 const props = defineProps<{
   trend: DashboardPanelState<DashboardTrend>;
@@ -19,11 +25,6 @@ const periodOptions = [
   { label: "近30天", value: "30d" },
   { label: "本月", value: "month" },
 ];
-/** 图表回调仅读取索引，提示使用纯文本及原始金额。 */
-function pointIndex(params: unknown): number {
-  const first = Array.isArray(params) ? params[0] : params;
-  return first && typeof first === "object" && "dataIndex" in first ? Number(first.dataIndex) : -1;
-}
 /** 分段控件值限制为服务端预置期间。 */
 function selectPeriod(value: string | number | boolean): void {
   if (value === "7d" || value === "30d" || value === "month") emit("period", value);
@@ -84,41 +85,9 @@ const trendOptions = computed<EChartsOption>(() => {
     series,
   };
 });
-const warehouseOptions = computed<EChartsOption>(() => {
-  const rows = props.warehouses.data ?? [];
-  return {
-    grid: { left: 10, right: 30, top: 12, bottom: 24, containLabel: true },
-    tooltip: {
-      trigger: "axis",
-      renderMode: "richText",
-      formatter: (params: unknown) => {
-        const row = rows[pointIndex(params)];
-        return row ? `${row.warehouse_name}\n库存金额 ¥${formatAmount(row.stock_amount)}` : "";
-      },
-    },
-    xAxis: {
-      type: "value",
-      axisLabel: { color: "#87909c" },
-      splitLine: { lineStyle: { opacity: 0.12 } },
-    },
-    yAxis: {
-      type: "category",
-      inverse: true,
-      data: rows.map((row) => row.warehouse_name),
-      axisLabel: { width: 95, overflow: "truncate", color: "#87909c" },
-    },
-    series: [
-      {
-        type: "bar",
-        data: rows.map((row) => Number(row.stock_amount)),
-        barMaxWidth: 18,
-        itemStyle: { color: "#159a75" },
-      },
-    ],
-  };
-});
-const warehouseHeight = computed(
-  () => Math.max(280, (props.warehouses.data?.length ?? 0) * 36 + 50) + "px"
+/** 仓库分类和缩放配置保留全部数据，金额不在页面重算。 */
+const warehouseOptions = computed<EChartsOption>(() =>
+  buildWarehouseChartOptions(props.warehouses.data ?? [])
 );
 </script>
 <template>
@@ -148,9 +117,7 @@ const warehouseHeight = computed(
       :empty="!warehouses.data?.length"
       @retry="emit('retryWarehouses')"
     >
-      <div class="home-charts__warehouses">
-        <Chart :options="warehouseOptions" :height="warehouseHeight" />
-      </div>
+      <Chart :options="warehouseOptions" height="280px" />
     </HomePanel>
   </div>
 </template>
@@ -158,15 +125,10 @@ const warehouseHeight = computed(
 .home-charts {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-  gap: 28px;
-
-  &__warehouses {
-    max-height: 400px;
-    overflow-y: auto;
-  }
+  gap: 20px;
   @media (width <= 960px) {
     grid-template-columns: minmax(0, 1fr);
-    gap: 0;
+    gap: 16px;
   }
 }
 </style>

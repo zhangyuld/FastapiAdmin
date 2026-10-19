@@ -110,9 +110,10 @@ async def get_user_list_controller(
 
 @UserRouter.get("/list/all", summary="查询所有启用用户", response_model=ResponseSchema[list[UserSelectOutSchema]])
 async def get_all_user_list_controller(
-    auth: Annotated[AuthSchema, Security(AuthPermission(["module_system:user:query"]))],
+    auth: Annotated[AuthSchema, Security(AuthPermission())],
     db: Annotated[AsyncSession, Depends(db_getter)],
 ) -> JSONResponse:
+    """业务审计下拉仅要求登录，返回范围仍由用户数据权限过滤。"""
     result_dict: list[UserSelectOutSchema] = await UserService(auth, db).get_all_list()
     return SuccessResponse(data=result_dict, msg="查询所有用户成功")
 

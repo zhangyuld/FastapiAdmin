@@ -65,6 +65,8 @@ export interface MenuPageQuery extends BaseQueryParams {
 }
 
 export interface MenuTable extends BaseType {
+  /** 后端绑定的功能策略，配置不可用时关闭专属菜单。 */
+  feature_key?: string | null;
   name?: string;
   type?: number;
   icon?: string;

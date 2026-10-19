@@ -1,6 +1,6 @@
 <!-- 设置面板 -->
 <template>
-  <div class="layout-settings">
+  <div v-if="product.can('settings')" class="layout-settings">
     <FaSettingDrawer v-model="showDrawer" @open="handleOpen" @close="handleClose">
       <!-- 头部关闭按钮 -->
       <FaSettingHeader @close="closeDrawer" />
@@ -18,6 +18,7 @@
       <FaContainerSettings />
       <!-- 基础配置 -->
       <FaBasicSettings />
+      <FaProductPolicy />
       <!-- 操作按钮 -->
       <FaSettingActions />
     </FaSettingDrawer>
@@ -26,6 +27,9 @@
 
 <script setup lang="ts">
 import { useSettingsPanel } from "./composables/useSettingsPanel";
+import FaProductPolicy from "./widgets/FaProductPolicy.vue";
+import { useProductConfigStore } from "@/store/modules/product-config.store";
+const product = useProductConfigStore();
 
 defineOptions({ name: "FaSettingsPanel" });
 

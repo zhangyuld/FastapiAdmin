@@ -2,7 +2,7 @@
 <template>
   <ElPopover
     ref="popoverRef"
-    :width="700"
+    :width="enabledApplications.length ? 700 : 240"
     :offset="0"
     :show-arrow="false"
     trigger="hover"
@@ -14,13 +14,13 @@
     }"
   >
     <template #reference>
-      <div class="flex items-center gap-2">
+      <div class="fast-enter-trigger flex items-center gap-2">
         <slot />
       </div>
     </template>
 
-    <div class="grid grid-cols-[2fr_0.8fr]">
-      <div>
+    <div :class="enabledApplications.length ? 'grid grid-cols-[2fr_0.8fr]' : ''">
+      <div v-if="enabledApplications.length">
         <div class="grid grid-cols-2 gap-1.5">
           <!-- 应用列表 -->
           <div
@@ -46,7 +46,10 @@
         </div>
       </div>
 
-      <div class="border-l border-(--default-border) pl-6 pt-2">
+      <div
+        class="pt-2"
+        :class="enabledApplications.length ? 'border-l border-(--default-border) pl-6' : ''"
+      >
         <h3 class="mb-2.5 text-base font-medium text-g-800">快速链接</h3>
         <ul>
           <li
@@ -151,7 +154,7 @@ const handleNavigate = (
   }
 
   if (targetPath.startsWith("http")) {
-    window.open(targetPath, "_blank");
+    window.open(targetPath, "_blank", "noopener,noreferrer");
   } else {
     router.push({ name: targetPath, query: routeQuery ?? {} });
   }

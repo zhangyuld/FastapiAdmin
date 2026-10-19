@@ -4,7 +4,7 @@
     class="auth-top-bar pointer-events-none fixed left-0 right-0 top-0 z-100 flex items-center justify-between gap-3 bg-transparent px-5 py-4.5 md:gap-4 md:px-10"
   >
     <div class="pointer-events-auto flex min-w-0 flex-1 items-center gap-3">
-      <FaLogo class="icon shrink-0" size="46" :src="webLogoSrc" />
+      <FaLogo class="icon shrink-0" size="46" />
       <div class="min-w-0 flex-1">
         <div class="flex flex-wrap items-center gap-2">
           <h1 class="auth-top-bar__site-title">{{ siteTitle }}</h1>
@@ -171,10 +171,6 @@ const { locale } = useI18n();
 const mainColors = AppConfig.systemMainColor;
 /** 与 Element 主题主色同步，供调色盘图标与展开态使用 */
 const themeColorForCss = computed(() => systemThemeColor.value);
-
-const webLogoSrc = computed(
-  () => configStore.configData.logo_url?.config_value?.trim() || undefined
-);
 
 const siteTitle = computed(
   () => configStore.configData.sys_name?.config_value?.trim() || AppConfig.systemInfo.name

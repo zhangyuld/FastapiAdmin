@@ -100,7 +100,10 @@ services:
       TZ: "Asia/Shanghai"
       # 运行环境，对应 backend/env/.env.{dev,prod}
       ENVIRONMENT: "${DEPLOY_ENV:-prod}"
+      DEBUG: "false"
+      SECRET_KEY: "${SECRET_KEY:?错误: 请设置至少32位独立 SECRET_KEY}"
       # MySQL 连接配置
+      DATABASE_TYPE: "mysql"
       DATABASE_HOST: "mysql"
       DATABASE_PORT: "3306"
       DATABASE_USER: "${MYSQL_USER:-fastapiadmin}"
@@ -139,7 +142,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "python -c 'import urllib.request; req = urllib.request.Request(\"http://localhost:8001/api/v1/monitor/health/check\", headers={\"X-Forwarded-Proto\": \"https\"}); urllib.request.urlopen(req, timeout=5)' || exit 1",
+          "python -c 'import urllib.request; req = urllib.request.Request(\"http://localhost:8001/api/v1/healthz\", headers={\"X-Forwarded-Proto\": \"https\"}); urllib.request.urlopen(req, timeout=5)' || exit 1",
         ]
       interval: 15s
       timeout: 10s

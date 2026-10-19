@@ -106,7 +106,7 @@
     {
         "config_name": "系统名称",
         "config_key": "sys_name",
-        "config_value": "FastapiAdmin系统",
+        "config_value": "智仓云",
         "config_type": true,
         "status": 0,
         "description": "平台系统名称，用于登录页等界面展示"

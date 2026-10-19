@@ -11,7 +11,7 @@
       class="dual-menu-left"
       :style="{ width: dualMenuShowText ? '80px' : '64px', background: getMenuTheme.background }"
     >
-      <FaLogo v-if="showAppLogo" class="logo" :src="sidebarLogoSrc" @click="navigateToHome" />
+      <FaLogo v-if="showAppLogo" class="logo" @click="navigateToHome" />
 
       <ElScrollbar :style="{ height: 'calc(100% - 135px)' }">
         <ul>
@@ -75,7 +75,7 @@
           background: getMenuTheme.background,
         }"
       >
-        <FaLogo v-if="!isDualMenu" class="logo" :src="sidebarLogoSrc" />
+        <FaLogo v-if="!isDualMenu" class="logo" />
 
         <p
           :class="{ 'is-dual-menu-name': isDualMenu }"
@@ -144,12 +144,7 @@ const route = useRoute();
 const router = useRouter();
 const settingStore = useSettingsStore();
 const configStore = useConfigStore();
-/** 租户配置：logo_url / name */
-const sidebarLogoSrc = computed(() => {
-  const raw = configStore.configData.logo_url?.config_value;
-  return typeof raw === "string" && raw.trim() ? raw.trim() : undefined;
-});
-
+/** 系统名称仍沿用后端配置，品牌图片由 FaLogo 统一提供。 */
 const sidebarTitle = computed(() => {
   const raw = configStore.configData.sys_name?.config_value;
   if (typeof raw === "string" && raw.trim()) return raw.trim();

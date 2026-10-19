@@ -17,6 +17,7 @@ from apscheduler.events import (
 from apscheduler.executors.asyncio import AsyncIOExecutor
 from apscheduler.executors.pool import ProcessPoolExecutor, ThreadPoolExecutor
 from apscheduler.job import Job
+from apscheduler.jobstores.base import BaseJobStore
 from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.jobstores.redis import RedisJobStore
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
@@ -25,6 +26,7 @@ from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 from redis.asyncio import Redis
+from sqlalchemy import inspect
 from sqlalchemy.orm import Session
 
 from app.config.setting import settings
@@ -64,6 +66,16 @@ SCHEDULER_LOCK_TTL = 30  # 锁有效期（秒）；须大于续期间隔，否�
 SCHEDULER_RENEW_INTERVAL = 10  # 持有者续期间隔
 SCHEDULER_POLL_INTERVAL = 5  # 候选进程争抢间隔；越小接管越快，Redis 压力越大
 
+class ExistingSQLAlchemyJobStore(SQLAlchemyJobStore):
+    """运行期只使用已初始化作业表，不沿用第三方 start 的自动建表行为。"""
+
+    def start(self, scheduler: Any, alias: str) -> None:
+        """缺失表时中止启动，由显式初始化命令创建。"""
+        BaseJobStore.start(self, scheduler, alias)
+        if not inspect(self.engine).has_table(self.jobs_t.name):
+            raise RuntimeError("APP_NOT_INITIALIZED: 作业表缺失，请执行 init-db --apply")
+
+
 scheduler = AsyncIOScheduler()
 scheduler.configure(
     jobstores={
@@ -74,7 +86,7 @@ scheduler.configure(
             password=settings.REDIS_PASSWORD or None,
             db=int(settings.REDIS_DB_NAME),
         ),
-        "sqlalchemy": SQLAlchemyJobStore(url=settings.DB_URI, engine=engine),
+        "sqlalchemy": ExistingSQLAlchemyJobStore(url=settings.DB_URI, engine=engine),
         "memory": MemoryJobStore(),
     },
     executors={

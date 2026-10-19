@@ -23,14 +23,13 @@
           @click="toHome"
           v-if="isTopMenu && showAppLogo"
         >
-          <FaLogo class="pl-4.5" :src="headerLogoSrc" />
+          <FaLogo class="pl-4.5" />
           <p v-if="width >= 1400" class="my-0 mx-2 ml-2 text-lg">{{ headerSystemName }}</p>
         </div>
 
         <FaLogo
           v-if="showAppLogo"
           class="hidden! pl-3.5 overflow-hidden align-[-0.15em] fill-current"
-          :src="headerLogoSrc"
           @click="toHome"
         />
 
@@ -219,12 +218,7 @@ const menuStore = useMenuStore();
 const configStore = useConfigStore();
 const noticeStore = useNoticeStore();
 
-/** 租户配置：logo_url / name */
-const headerLogoSrc = computed(() => {
-  const raw = configStore.configData.logo_url?.config_value;
-  return typeof raw === "string" && raw.trim() ? raw.trim() : undefined;
-});
-
+/** 系统名称仍沿用后端配置，品牌图片由 FaLogo 统一提供。 */
 const headerSystemName = computed(() => {
   const raw = configStore.configData.sys_name?.config_value;
   if (typeof raw === "string" && raw.trim()) return raw.trim();

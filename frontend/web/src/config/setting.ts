@@ -20,7 +20,6 @@
  * 3. 枚举类型的值需要与 src/enums/appEnum.ts 中的定义保持一致
  */
 
-import AppConfig from "@/config";
 import { LayoutMode, ComponentSize, SidebarColor, ThemeMode } from "@/enums";
 import {
   SystemThemeEnum,
@@ -34,14 +33,13 @@ const env = import.meta.env;
 const { pkg } = __APP_INFO__;
 
 // 检查用户的操作系统是否使用深色模式
-const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
 /**
  * 系统设置默认值配置
  */
 export const SETTING_DEFAULT_CONFIG = {
   /** 项目名称 */
-  name: pkg.name as string,
+  name: "智仓云",
   /** 系统标题 */
   title: (env.VITE_APP_TITLE as string) || pkg.name,
   /** 系统版本 */
@@ -55,7 +53,7 @@ export const SETTING_DEFAULT_CONFIG = {
   /** 是否显示尺寸选择 */
   showSizeSelect: true,
   /** 是否显示语言选择 */
-  showLangSelect: true,
+  showLangSelect: false,
   /** 是否显示通知 */
   showNotification: true,
   /** 是否显示标签视图 */
@@ -65,23 +63,23 @@ export const SETTING_DEFAULT_CONFIG = {
   /** 布局方式 */
   layout: LayoutMode.LEFT,
   /** 主题模式 */
-  theme: prefersDark ? ThemeMode.DARK : ThemeMode.LIGHT,
+  theme: ThemeMode.LIGHT,
   /** 组件大小 */
   size: ComponentSize.DEFAULT,
   /** 语言 */
   language: LanguageEnum.ZH,
   /** 主题颜色 */
-  themeColor: "#4080FF",
+  themeColor: "#5D87FF",
   /** 是否显示水印 */
   showWatermark: false,
   /** 水印内容 */
-  watermarkContent: pkg.name,
+  watermarkContent: "智仓云",
   /** 侧边栏配色方案 */
   sidebarColorScheme: SidebarColor.CLASSIC_BLUE,
   /** 项目引导可见性 */
   guideVisible: false,
   /** 是否启动引导 */
-  showGuide: true,
+  showGuide: false,
   /** 是否开启AI助手 */
   aiEnabled: false,
   /** 是否开启灰色模式 */
@@ -91,19 +89,19 @@ export const SETTING_DEFAULT_CONFIG = {
   /** 菜单类型 */
   menuType: MenuTypeEnum.LEFT,
   /** 菜单展开宽度 */
-  menuOpenWidth: 230,
+  menuOpenWidth: 220,
   /** 菜单是否展开 */
   menuOpen: true,
   /** 双菜单是否显示文本 */
   dualMenuShowText: false,
   /** 系统主题类型 */
-  systemThemeType: SystemThemeEnum.AUTO,
+  systemThemeType: SystemThemeEnum.LIGHT,
   /** 系统主题模式 */
-  systemThemeMode: SystemThemeEnum.AUTO,
+  systemThemeMode: SystemThemeEnum.LIGHT,
   /** 菜单风格 */
-  menuThemeType: MenuThemeEnum.DESIGN,
+  menuThemeType: MenuThemeEnum.LIGHT,
   /** 系统主题颜色 */
-  systemThemeColor: AppConfig.systemMainColor[0],
+  systemThemeColor: "#5D87FF",
   /** 是否显示菜单按钮 */
   showMenuButton: true,
   /** 是否显示快速入口 */
@@ -115,15 +113,15 @@ export const SETTING_DEFAULT_CONFIG = {
   /** 是否显示工作台标签 */
   showWorkTab: true,
   /** 是否显示语言切换 */
-  showLanguage: true,
+  showLanguage: false,
   /** 是否显示进度条 */
   showNprogress: true,
   /** 是否显示设置引导 */
-  showSettingGuide: true,
+  showSettingGuide: false,
   /** 是否显示节日文本 */
   showFestivalText: false,
   /** 是否显示水印（新版本字段） */
-  watermarkVisible: false,
+  watermarkVisible: true,
   /** 是否自动关闭 */
   autoClose: false,
   /** 是否唯一展开 */
@@ -131,11 +129,11 @@ export const SETTING_DEFAULT_CONFIG = {
   /** 是否色弱模式 */
   colorWeak: false,
   /** 是否刷新 */
-  refresh: false,
+  refresh: true,
   /** 是否加载节日烟花 */
   holidayFireworksLoaded: false,
   /** 边框模式 */
-  boxBorderMode: true,
+  boxBorderMode: false,
   /** 页面过渡效果 */
   pageTransition: "slide-left",
   /** 标签页样式 */

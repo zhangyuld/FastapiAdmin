@@ -4,8 +4,8 @@
 from fastapi.testclient import TestClient
 
 
-def test_check_health(test_client: TestClient) -> None:
-    response = test_client.get("/monitor/health/check/")
+def test_check_health(test_client: TestClient, auth_headers) -> None:
+    response = test_client.get("/monitor/health/check/", headers=auth_headers)
     assert response.status_code == 200
     body = response.json()
     assert body["success"] is True

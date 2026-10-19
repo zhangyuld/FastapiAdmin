@@ -9,6 +9,13 @@
 
 <script setup lang="ts">
 import { getEnabledGlobalComponents } from "@/config/modules/component";
+import { useProductConfigStore } from "@/store/modules/product-config.store";
+const product = useProductConfigStore();
 defineOptions({ name: "FaGlobalComponent" });
-const enabledComponents = computed(() => getEnabledGlobalComponents());
+const enabledComponents = computed(() =>
+  getEnabledGlobalComponents().filter(
+    (item) =>
+      item.key !== "fireworks-effect" && (item.key !== "settings-panel" || product.can("settings"))
+  )
+);
 </script>

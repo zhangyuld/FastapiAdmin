@@ -3,10 +3,10 @@
 from collections.abc import AsyncGenerator
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.concurrency import asynccontextmanager
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html, get_swagger_ui_oauth2_redirect_html
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import path_conf
@@ -22,15 +22,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[Any, Any]:
     from app.core.ap_scheduler import SchedulerUtil
     from app.core.database import async_engine
     from app.core.redis_crud import redis_connect
-    from app.modules.ai.chat.crud import init_agno_tables
     from app.modules.system.dict.service import DictDataService
     from app.modules.system.params.service import ParamsService
-    from app.scripts.initialize import InitializeData
+    from app.scripts.deployment.check import check_installation
 
-    await InitializeData().init_db()
-    logger.info(f"✅ {settings.DATABASE_TYPE} 连接初始化完成")
-    await init_agno_tables()
-    logger.info("✅ AI 会话表 初始化完成")
+    await check_installation()
+    logger.info(f"✅ {settings.DATABASE_TYPE} 只读安装检查完成")
     await redis_connect(app, status=True)
     logger.info("✅ Redis 连接初始化完成")
     await ParamsService.init_cache(redis=app.state.redis)
@@ -96,12 +93,20 @@ def register_docs(app: FastAPI) -> None:
     """注册文档路由。"""
     swagger_ui_redirect_url = str(app.swagger_ui_oauth2_redirect_url)
     root_openapi_url = str(app.root_path) + str(app.openapi_url)
+    from app.modules.system.product_config.docs import docs_auth
 
-    @app.get(swagger_ui_redirect_url, include_in_schema=False)
+    app.router.routes = [route for route in app.router.routes if getattr(route, "path", None) != app.openapi_url]
+
+    @app.get(app.openapi_url, include_in_schema=False, dependencies=[Depends(docs_auth)])
+    async def protected_openapi(request: Request) -> JSONResponse:
+        """原 OpenAPI 地址保持可用，但不再匿名公开。"""
+        return JSONResponse(request.app.openapi())
+
+    @app.get(swagger_ui_redirect_url, include_in_schema=False, dependencies=[Depends(docs_auth)])
     async def swagger_ui_redirect():
         return get_swagger_ui_oauth2_redirect_html()
 
-    @app.get(settings.DOCS_URL, include_in_schema=False)
+    @app.get(settings.DOCS_URL, include_in_schema=False, dependencies=[Depends(docs_auth)])
     async def custom_swagger_ui_html() -> HTMLResponse:
         return get_swagger_ui_html(
             openapi_url=root_openapi_url,
@@ -112,7 +117,7 @@ def register_docs(app: FastAPI) -> None:
             swagger_favicon_url=settings.FAVICON_URL,
         )
 
-    @app.get(settings.REDOC_URL, include_in_schema=False)
+    @app.get(settings.REDOC_URL, include_in_schema=False, dependencies=[Depends(docs_auth)])
     async def custom_redoc_html() -> HTMLResponse:
         return get_redoc_html(
             openapi_url=root_openapi_url,
@@ -138,6 +143,12 @@ def create_app() -> FastAPI:
 
     # 创建FastAPI应用
     app = FastAPI(**settings.FASTAPI_CONFIG, lifespan=lifespan)
+    app.title = "智仓云"
+
+    @app.get("/healthz", include_in_schema=False)
+    async def health_probe() -> dict[str, str]:
+        """部署探针只确认进程已启动，不公开数据库或监控详情。"""
+        return {"status": "ok"}
     # 注册异常处理器
     register_exceptions(app)
     # 注册中间件

@@ -1,0 +1,29 @@
+{
+  "dataset": "company-v1",
+  "departments": [
+    { "code": "COMPANY", "name": "公司", "order": 1 },
+    { "code": "WAREHOUSE", "name": "仓储部", "parent_code": "COMPANY", "order": 2 }
+  ],
+  "positions": [
+    { "code": "WAREHOUSE_KEEPER", "name": "仓管员", "order": 1 }
+  ],
+  "roles": [
+    {
+      "code": "WAREHOUSE_READER",
+      "name": "库存查询员",
+      "order": 1,
+      "data_scope": 2,
+      "permissions": ["module_inventory:stock_balance:query", "module_inventory:stock_log:query"]
+    }
+  ],
+  "users": [
+    {
+      "username": "warehouse.reader",
+      "name": "仓储查询员",
+      "dept_code": "WAREHOUSE",
+      "role_codes": ["WAREHOUSE_READER"],
+      "position_codes": ["WAREHOUSE_KEEPER"],
+      "password_env": "ORG_WAREHOUSE_PASSWORD"
+    }
+  ]
+}

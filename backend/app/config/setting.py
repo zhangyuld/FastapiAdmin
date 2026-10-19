@@ -131,7 +131,7 @@ class Settings(BaseSettings):
     # ================================================= #
     PASSWORD_MIN_LENGTH: int = 6
     PASSWORD_MAX_LENGTH: int = 128
-    PASSWORD_IMPORT_DEFAULT: str = "123456"
+    PASSWORD_IMPORT_DEFAULT: str = "zcy123456@#"
 
     # ================================================= #
     # ***************** 第三方 OAuth 登录（可选）********* #

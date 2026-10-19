@@ -63,6 +63,9 @@ const updatedTime = computed(() => (summary.data ? summary.data.as_of.slice(11, 
 </template>
 <style scoped lang="scss">
 .inventory-home {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
   min-width: 0;
 
   &__header {

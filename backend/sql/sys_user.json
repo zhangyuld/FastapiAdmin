@@ -1,7 +1,7 @@
 [
     {
         "username": "super",
-        "password": "$pbkdf2-sha256$600000$XX20aO1v73xS0JnoewXNtw==$PEaVHV1N5L7PfYQw2lCAQOc4hAEyCiwsGR48/jgVBjU=",
+        "password": "$pbkdf2-sha256$600000$YAdsdb6mozVf0UEs7uVctw==$9fJ3HzC5vMMan+JRyUhw+y7USVee2yPBisdSZaeuTy4=",
         "name": "超级管理员",
         "mobile": "13800138000",
         "email": "super@example.com",
@@ -21,7 +21,7 @@
     },
     {
         "username": "admin",
-        "password": "$pbkdf2-sha256$600000$XX20aO1v73xS0JnoewXNtw==$PEaVHV1N5L7PfYQw2lCAQOc4hAEyCiwsGR48/jgVBjU=",
+        "password": "$pbkdf2-sha256$600000$FRXp2ERnaiMmpXgicvg5yQ==$9NC9a0bQzfScvNw9BFn2bkq+r2/KLoAky8S/l2J7ws4=",
         "name": "管理员",
         "mobile": "13800138001",
         "email": "admin@example.com",
@@ -41,7 +41,7 @@
     },
     {
         "username": "user",
-        "password": "$pbkdf2-sha256$600000$XX20aO1v73xS0JnoewXNtw==$PEaVHV1N5L7PfYQw2lCAQOc4hAEyCiwsGR48/jgVBjU=",
+        "password": "$pbkdf2-sha256$600000$z7eoZrlvg66uqqLQGspdNQ==$7asylZK0vX4b8nkufpxOpX7rN0hLxgjNK2qNLnxS+Sg=",
         "name": "普通用户",
         "mobile": "13800138002",
         "email": "user@example.com",

@@ -175,6 +175,7 @@ class MenuOutSchema(MenuCreateSchema, BaseSchema):
     model_config = ConfigDict(from_attributes=True)
 
     parent_name: str | None = Field(default=None, max_length=50, description="父菜单名称")
+    feature_key: str | None = Field(default=None, description="后端计算的产品功能策略标识，不入库")
 
 
 class MenuTreeOutSchema(MenuOutSchema):

@@ -42,7 +42,6 @@ const metrics = computed(() => dashboardMetrics(props.data));
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
-  margin: 20px 0 24px;
 
   > .el-alert {
     grid-column: 1 / -1;

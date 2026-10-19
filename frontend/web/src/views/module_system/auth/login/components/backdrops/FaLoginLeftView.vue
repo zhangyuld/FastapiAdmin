@@ -2,7 +2,7 @@
 <template>
   <div class="login-left-view">
     <div v-if="!hideTopBranding" class="logo">
-      <FaLogo class="icon" size="46" :src="webLogoSrc" />
+      <FaLogo class="icon" size="46" />
       <div class="logo-title-wrap">
         <div class="logo-title-inline">
           <h1 class="title">{{ siteTitle }}</h1>
@@ -110,11 +110,6 @@ withDefaults(defineProps<Props>(), {
 });
 
 const configStore = useConfigStore();
-
-/** 接口 logo_url，空则 FaLogo 内置默认图 */
-const webLogoSrc = computed(
-  () => configStore.configData.logo_url?.config_value?.trim() || undefined
-);
 
 const siteTitle = computed(
   () => configStore.configData.sys_name?.config_value?.trim() || AppConfig.systemInfo.name

@@ -10,7 +10,7 @@ from fastapi import Request
 from redis.asyncio.client import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.enums import EnvironmentEnum, RedisInitKeyConfig
+from app.common.enums import RedisInitKeyConfig
 from app.config.setting import settings
 from app.core.base_schema import AuthSchema, JWTOutSchema, JWTPayloadSchema
 from app.core.database import async_db_session
@@ -190,8 +190,20 @@ class LoginService:
         _login_username = login_form.username
 
         referer = request.headers.get("referer", "")
-        # docs 豁免仅限非生产环境：Referer 完全由客户端控制，不能作为生产环境的安全边界
-        request_from_docs = settings.ENVIRONMENT != EnvironmentEnum.PROD and referer.endswith(("docs", "redoc"))
+        # 文档登录只信任已认证超管的短期会话，不凭可伪造的 Referer 免验证码。
+        request_from_docs = False
+        if referer.endswith(("docs", "redoc")):
+            from app.core.dependencies import get_current_user
+            from app.modules.system.product_config.docs import DOCS_COOKIE
+            from app.modules.system.product_config.service import ProductConfigService
+
+            if docs_token := request.cookies.get(DOCS_COOKIE):
+                try:
+                    docs_actor = await get_current_user(db=db, redis=redis, token=docs_token)
+                    await ProductConfigService(db).require_feature("api_docs", docs_actor)
+                    request_from_docs = True
+                except CustomException:
+                    request_from_docs = False
 
         if settings.CAPTCHA_ENABLE and not request_from_docs:
             if not login_form.captcha_key:
@@ -588,7 +600,7 @@ class CaptchaService:
     async def get_captcha(redis: Redis, request: Request) -> CaptchaOutSchema:
         """获取验证码（滑块模式：仅生成 key，无需算术图片）"""
         if not settings.CAPTCHA_ENABLE:
-            raise CustomException(msg="未开启验证码服务")
+            return CaptchaOutSchema(enable=False, key=CaptchaKey("disabled"), img_base=CaptchaBase64(""))
 
         captcha_key = get_random_character()
         # 存储滑块状态：pending（待验证）/ verified（已验证通过）

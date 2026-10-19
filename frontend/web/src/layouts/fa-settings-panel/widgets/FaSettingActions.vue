@@ -233,7 +233,7 @@ const handleResetConfig = async () => {
     settingStore.setFestivalDate(config.festivalDate);
     settingStore.setholidayFireworksLoaded(config.holidayFireworksLoaded);
 
-    location.reload();
+    ElMessage.success("已恢复默认预览，保存并发布后生效");
   } catch (error) {
     console.error("重置配置失败:", error);
     ElMessage.error(t("setting.actions.resetFailed"));

@@ -1,9 +1,8 @@
 import re
 from datetime import datetime
-from decimal import Decimal
-from typing import Literal, Self
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.core.base_schema import BaseQueryParam, BaseSchema, UserByQueryParam, UserBySchema
 
@@ -13,8 +12,8 @@ class SupplierBaseSchema(BaseModel):
 
     supplier_name: str = Field(..., max_length=200, description="供应商名称")
     supplier_code: str = Field(..., max_length=64, description="供应商编码")
-    contact: str = Field(..., max_length=64, description="联系人")
-    phone: str = Field(..., max_length=20, description="联系电话")
+    contact: str | None = Field(default=None, max_length=64, description="联系人")
+    phone: str | None = Field(default=None, max_length=32, description="联系电话")
     address: str | None = Field(default=None, max_length=200, description="地址")
     remark: str | None = Field(default=None, max_length=500, description="备注")
     status: int = Field(..., ge=0, le=1, description="状态(0:启用 1:停用)")
@@ -29,7 +28,7 @@ class SupplierBaseSchema(BaseModel):
             raise ValueError("供应商名称和供应商编码不能为空")
         return result
 
-    @field_validator("remark")
+    @field_validator("contact", "phone", "address", "remark")
     @classmethod
     def normalize_optional_text(cls, value: str | None) -> str | None:
         """清理可选文本，空白内容统一存储为空值。"""
@@ -80,7 +79,7 @@ class SupplierQueryParam(BaseQueryParam, UserByQueryParam):
     supplier_name: str | None = Field(default=None, max_length=200, description="供应商名称", json_schema_extra={"q": "like"})
     supplier_code: str | None = Field(default=None, max_length=64, description="供应商编码", json_schema_extra={"q": "like"})
     contact: str | None = Field(default=None, max_length=64, description="联系人", json_schema_extra={"q": "like"})
-    phone: str | None = Field(default=None, max_length=20, description="联系电话", json_schema_extra={"q": "like"})
+    phone: str | None = Field(default=None, max_length=32, description="联系电话", json_schema_extra={"q": "like"})
     status: int | None = Field(default=None, ge=0, le=1, description="状态(0:启用 1:停用)", json_schema_extra={"q": "eq"})
 
 

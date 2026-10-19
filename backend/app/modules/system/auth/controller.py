@@ -32,6 +32,7 @@ from .service import (
 from .wx_mini_service import get_qrcode, wx_mini_login, wx_mini_phone_login
 
 AuthRouter = APIRouter(route_class=OperationLogRoute, prefix="/auth", tags=["认证授权"])
+DeferredAuthRouter = APIRouter(prefix="/auth", tags=["暂未开放的认证渠道"])
 
 
 @AuthRouter.post("/login", summary="登录", response_model=LoginOutSchema)
@@ -90,7 +91,7 @@ async def logout_controller(
     return ErrorResponse(msg="退出失败")
 
 
-@AuthRouter.get("/oauth/{provider}/login", summary="第三方OAuth跳转")
+@DeferredAuthRouter.get("/oauth/{provider}/login", summary="第三方OAuth跳转")
 async def oauth_login_redirect_controller(
     request: Request,
     redis: Annotated[Redis, Depends(redis_getter)],
@@ -107,7 +108,7 @@ async def oauth_login_redirect_controller(
     return RedirectContentResponse(url=url, status_code=302)
 
 
-@AuthRouter.get("/oauth/{provider}/callback", summary="第三方OAuth回调", include_in_schema=False)
+@DeferredAuthRouter.get("/oauth/{provider}/callback", summary="第三方OAuth回调", include_in_schema=False)
 async def oauth_callback_controller(
     request: Request,
     redis: Annotated[Redis, Depends(redis_getter)],
@@ -133,7 +134,7 @@ async def oauth_callback_controller(
 # =================================================== #
 
 
-@AuthRouter.post("/wx-login", summary="微信小程序登录", response_model=ResponseSchema[LoginOutSchema])
+@DeferredAuthRouter.post("/wx-login", summary="微信小程序登录", response_model=ResponseSchema[LoginOutSchema])
 async def wx_mini_login_controller(
     request: Request,
     redis: Annotated[Redis, Depends(redis_getter)],
@@ -152,7 +153,7 @@ async def wx_mini_login_controller(
     return SuccessResponse(data=result, msg="登录成功")
 
 
-@AuthRouter.post("/wx-phone-login", summary="微信小程序手机号登录", response_model=ResponseSchema[LoginOutSchema])
+@DeferredAuthRouter.post("/wx-phone-login", summary="微信小程序手机号登录", response_model=ResponseSchema[LoginOutSchema])
 async def wx_mini_phone_login_controller(
     request: Request,
     redis: Annotated[Redis, Depends(redis_getter)],
@@ -169,7 +170,7 @@ async def wx_mini_phone_login_controller(
     return SuccessResponse(data=result, msg="登录成功")
 
 
-@AuthRouter.post("/wx-qrcode/generate", summary="生成小程序码", response_model=ResponseSchema[WxQrCodeOutSchema])
+@DeferredAuthRouter.post("/wx-qrcode/generate", summary="生成小程序码", response_model=ResponseSchema[WxQrCodeOutSchema])
 async def wx_qrcode_generate_controller(
     redis: Annotated[Redis, Depends(redis_getter)],
     body: Annotated[WxQrCodeSchema, Body(description="小程序码生成参数")],

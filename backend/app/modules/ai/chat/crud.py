@@ -47,17 +47,10 @@ def _get_agno_db() -> Any:
 
 
 async def init_agno_tables() -> None:
-    """应用启动时确保 agno 表结构存在（幂等，表已存在则跳过）。
-
-    agno 的 create_schema 仅控制是否自动建库，建表需调用方显式触发；
-    不初始化则首次读写会话时报 "Table has an invalid schema"。
-    """
+    """仅显式部署初始化调用；不吞掉失败，运行期不自动补表。"""
     db = _get_agno_db()
-    try:
-        await db._create_all_tables()
-    except Exception as e:
-        # 多 worker 并发首启时可能同时建表，"已存在"类冲突可安全忽略
-        logger.warning(f"agno 表初始化告警（多为并发建表冲突，可忽略）: {e}")
+    for kind in ("versions", "sessions", "memories", "metrics", "evals", "knowledge", "culture", "traces", "spans"):
+        await db._get_table(table_type=kind, create_table_if_not_found=True)
 
 
 def _row_session_name(row: dict[str, Any]) -> str:

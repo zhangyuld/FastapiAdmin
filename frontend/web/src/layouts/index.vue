@@ -9,7 +9,7 @@
 <template>
   <div class="app-layout">
     <!-- 水印覆盖层（FaWatermark 组件，内含 ElWatermark，通过 store watermarkVisible 控制显隐） -->
-    <FaWatermark :content="userStore.basicInfo?.username || AppConfig.systemInfo.name" />
+    <FaWatermark :content="AppConfig.systemInfo.name" />
 
     <!-- 左侧菜单导航 -->
     <aside id="app-sidebar" aria-label="主菜单导航">
@@ -22,6 +22,13 @@
         <FaHeaderBar />
       </div>
       <div id="app-content">
+        <ElAlert
+          v-if="product.profileFailed"
+          title="界面配置加载失败，专属功能已关闭"
+          type="warning"
+          :closable="false"
+          ><ElButton link @click="product.loadProfile">重试</ElButton></ElAlert
+        >
         <FaPageContent />
       </div>
     </main>
@@ -52,6 +59,8 @@
 import { computed } from "vue";
 import { useAppStore, useSettingsStore, useUserStore } from "@stores";
 import AppConfig from "@/config";
+import { useProductConfigStore } from "@/store/modules/product-config.store";
+const product = useProductConfigStore();
 
 defineOptions({ name: "AppLayout" });
 
@@ -63,7 +72,7 @@ const userStore = useUserStore();
 const enableAiAssistant = computed(() => {
   const isEnabled = settingStore.userEnableAi;
   const isLoggedIn = userStore.basicInfo && Object.keys(userStore.basicInfo).length > 0;
-  return isEnabled && isLoggedIn;
+  return product.can("ai") && isEnabled && isLoggedIn;
 });
 
 /** 新手指引显隐 —— session 级状态，首次登录/注册后自动弹出 */

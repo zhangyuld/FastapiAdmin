@@ -1,7 +1,9 @@
 """v1 路由总表"""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Security
+from fastapi.routing import APIRoute
 
+from app.core.dependencies import AuthPermission
 from app.modules.ai.chat.controller import ChatRouter
 from app.modules.common.file.controller import FileRouter
 from app.modules.generator.gencode.controller import GenRouter
@@ -37,6 +39,7 @@ from app.modules.system.menu.controller import MenuRouter
 from app.modules.system.notice.controller import NoticeRouter
 from app.modules.system.params.controller import ParamsRouter
 from app.modules.system.position.controller import PositionRouter
+from app.modules.system.product_config.controller import ProductConfigRouter
 from app.modules.system.role.controller import RoleRouter
 from app.modules.system.ticket.controller import TicketRouter
 from app.modules.system.user.controller import UserRouter
@@ -59,6 +62,7 @@ DOMAIN_CONTROLLERS: dict[str, list[APIRouter]] = {
         PositionRouter,
         DictRouter,
         ParamsRouter,
+        ProductConfigRouter,
         NoticeRouter,
         TicketRouter,
         VersionRouter,
@@ -94,5 +98,9 @@ api_v1 = APIRouter()
 for prefix, controllers in DOMAIN_CONTROLLERS.items():
     router = APIRouter(prefix=prefix)
     for controller in controllers:
+        if prefix in {"/ai", "/monitor", "/task", "/generator"}:
+            for route in controller.routes:
+                if isinstance(route, APIRoute) and not any(isinstance(item.dependency, AuthPermission) for item in route.dependencies):
+                    route.dependencies.append(Security(AuthPermission()))
         router.include_router(controller)
     api_v1.include_router(router)

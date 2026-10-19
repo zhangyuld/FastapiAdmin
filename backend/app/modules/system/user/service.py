@@ -106,6 +106,7 @@ class UserService:
         return [UserSelectOutSchema.model_validate(user) for user in user_list]
 
     async def create(self, data: UserCreateSchema) -> UserOutSchema:
+        """新增普通账号，未指定口令时采用统一初始口令。"""
         if data.is_superuser:
             raise CustomException(msg="不允许创建超级管理员")
         if await UserCRUD(self.auth, self.db).get(username=data.username):
@@ -114,8 +115,8 @@ class UserService:
         if data.dept_id and not await DeptCRUD(self.auth, self.db).get(id=data.dept_id):
             raise CustomException(msg="该数据不存在")
 
-        if data.password:
-            data.password = await PwdUtil.ahash_password(password=data.password)
+        initial_password = data.password if data.password is not None else PwdUtil.default_initial_password(data.username or "")
+        data.password = await PwdUtil.ahash_password(password=initial_password)
 
         create_data = data.model_dump(exclude_none=True, exclude={"role_ids", "position_ids"})
         new_user = await UserCRUD(self.auth, self.db).create(data=create_data)
@@ -231,6 +232,10 @@ class UserService:
         if user.dept:
             user_dict.dept_name = user.dept.name
         user_dict.is_superuser = user.is_superuser
+        from app.modules.system.product_config.service import ProductConfigService
+
+        for role in user_dict.roles or []:
+            role.menus = await ProductConfigService(self.db).filter_menus(role.menus, self.auth)
 
         menu_tree = [MenuTreeOutSchema(**item) for item in traversal_to_tree([menu.model_dump(mode="json") for menu in await self._load_menus()])]
         user_dict.menus = menu_tree
@@ -244,18 +249,23 @@ class UserService:
                 search={"type": ("in", [1, 2, 3, 4]), "status": 0, **_pc_only},
                 order_by=[{"order": "asc"}],
             )
-            return [MenuOutSchema.model_validate(menu) for menu in menu_all]
+            from app.modules.system.product_config.service import ProductConfigService
+
+            return await ProductConfigService(self.db).filter_menus([MenuOutSchema.model_validate(menu) for menu in menu_all], self.auth)
         else:
             menu_ids = set(self.auth.menu_ids)
             if not menu_ids:
                 return []
-            return [
+            menus = [
                 MenuOutSchema.model_validate(menu)
                 for menu in await MenuCRUD(self.auth, self.db).get_list(
                     search={"id": ("in", list(menu_ids)), **_pc_only},
                     order_by=[{"order": "asc"}],
                 )
             ]
+            from app.modules.system.product_config.service import ProductConfigService
+
+            return await ProductConfigService(self.db).filter_menus(menus, self.auth)
 
     async def update_current_info(self, data: CurrentUserUpdateSchema) -> UserOutSchema:
         user_id = self.auth.user.id
@@ -432,7 +442,6 @@ class UserService:
                 "gender": str(row["gender"]).strip() if row.get("gender") is not None else "1",
                 "status": 0 if str(row["status"]).strip() == "正常" else 1,
                 "dept_id": dept_id,
-                "password": await PwdUtil.ahash_password(password=settings.PASSWORD_IMPORT_DEFAULT),
             }
 
             exists_user = await UserCRUD(self.auth, self.db).get(username=user_data["username"])
@@ -446,6 +455,7 @@ class UserService:
                 else:
                     return 0, f"第{row_num}行: 用户 {user_data['username']} 已存在"
             else:
+                user_data["password"] = await PwdUtil.ahash_password(password=PwdUtil.default_initial_password(username, settings.PASSWORD_IMPORT_DEFAULT))
                 user_create_schema = UserCreateSchema(**user_data)
                 new_user = await UserCRUD(self.auth, self.db).create(
                     data=user_create_schema.model_dump(exclude_none=True, exclude={"role_ids", "position_ids"})  # type: ignore[arg-type]

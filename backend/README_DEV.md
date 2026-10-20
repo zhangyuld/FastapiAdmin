@@ -1,20 +1,130 @@
-# 开发步骤
+# 后端开发指南
 
-## module新增
+本文面向已经完成本地初始化的开发环境。首次安装按 [后端 README](README.md) 操作；生产部署、已有库升级和故障排查按 [部署与初始化指南](DEPLOYMENT_INIT.md) 操作，不在本文件重复部署流程。
 
-  - 在`app.module`下新增对应的模块文件夹
-  - 在文件夹内新增`model.py`,`schema.py`,`crud.py`,`service.py`,`controller.py`, `param.py`
-    - `model.py`        ORM 模型 - 数据库表定义,可能在上层等地方定义
-    - `schema.py`       Pydantic 模型 - 数据验证,做入参,出参等格式处理
-    - `crud.py`         数据层 - 数据库操作
-    - `service.py`      服务层 - 业务逻辑处理
-    - `controller.py`   控制器 - HTTP 请求处理
-    - `param.py`        参数模型 - 请求参数,非必需
-  - 开发完成后需要在在`app/api/v1/router.py`中导入对应的模块,才能被外部访问到
+> 除特别注明，命令工作目录均为 `backend/`。修改前先确认需求、接口契约和影响范围，遵循仓库及用户的开发审核约定。
 
-## 新增菜单处理
-  - `backend\sql\sys_menu.json`中新增菜单信息和权限
-  - `backend\app\scripts\inventory_menu.py`中调整菜单的状态
-  - `backend\tests\test_inventory_menu.py`中`test_only_delivered_inventory_pages_are_enabled().delivered_names`添加菜单
+## 1. 确定模块位置
 
-  - 处理完后运行 `uv run main.py inventory-menu-init --env=dev`刷入对应的菜单数据
+| 类型 | 位置 | 路由接入方式 |
+| --- | --- | --- |
+| 系统与进销存主体业务 | `app/modules/<业务域>/<功能>/` | 在 `app/api/v1/routers.py` 导入控制器并加入对应的 `DOMAIN_CONTROLLERS` 分组 |
+| 独立插件或示例扩展 | `app/plugin/module_<名称>/.../` | `app/core/discover.py` 扫描并注册控制器 |
+
+当前进销存功能优先在 `app/modules/inventory/` 内开发，参考同业务域现有实现。模型可能统一定义在上层 `model.py`，不要为每个接口重复定义表。
+
+跨页面复用先放业务模块内并清晰命名；确有稳定跨模块需求时再评估上移共享层。新增或修改的方法、类型和业务边界补齐有效注释，不逐行解释显然的赋值。
+
+## 2. 定义模型与接口契约
+
+| 文件 | 职责与检查重点 |
+| --- | --- |
+| `model.py` | SQLAlchemy 表、字段、索引、约束及关系；无结构变更时复用已有模型 |
+| `schema.py` | 查询、创建、更新、详情、列表、导出等入参/出参；明确可空字段、默认值、长度和金额精度 |
+| `param.py` | 可选，用于复杂查询参数或依赖封装；简单参数不强制拆文件 |
+| `crud.py` | 数据查询、过滤、分页、关联加载和持久化；复用基类及本模块查询构造 |
+| `service.py` | 业务规则、权限数据范围、状态流转、事务及跨表协作 |
+| `controller.py` | HTTP 路由、参数接收、认证授权、调用服务和统一响应 |
+
+先补入参、响应和必要状态类型，再按 schema → crud → service → controller 补齐实现。新增业务接口按当前项目约定使用 GET/POST；GET 用于查询，POST 用于新增、更新、删除、确认及复杂导出等操作，具体路径与同域现有接口保持一致。
+
+- ORM 可空字段要在输出 Schema 中明确允许 `None` 或在业务层做有依据的转换，避免接口查询成功但响应校验500。
+- 明确批量操作请求体，例如删除是否接收 `{"ids": [3]}`，不能让前端对象与后端裸数组不匹配。
+- 全量导出与当前页导出应遵循相同的筛选、所选列及文件名约定，并保持数据权限。
+- 业务单据确认、作废、退货、库存与往来记账复用现有服务和事务，不绕过业务校验直接修改余额。
+- 复用 `OperationLogRoute`、`AuthPermission`、`ResponseSchema` 和统一响应；输入校验错误与业务错误按现有机制处理，不统一吞成500。
+
+## 3. 模型变更生成并审查迁移
+
+**新增 Python 模型不等于已经创建数据库表。** 实际链路为：
+
+```text
+main.py revision --env=dev
+  → app/alembic/env.py
+  → ImportUtil.find_models(MappedBase) 扫描 model.py / models.py 并导入有效模型
+  → MappedBase.metadata 汇总表结构
+  → Alembic 比较模型与当前开发库，生成迁移文件
+  → 人工审查
+  → main.py upgrade --env=dev 执行迁移中的 DDL
+```
+
+在已初始化、与当前迁移历史一致的开发库上操作：
+
+```bash
+uv run main.py revision --env=dev -m "新增业务表或字段说明"
+# 先检查 app/alembic/versions/ 下新迁移的 upgrade/downgrade、索引、约束和数据影响
+uv run main.py upgrade --env=dev
+uv run main.py init-check --env=dev
+```
+
+生成命令本身不应用迁移；没有模型差异时可能不生成文件。字段重命名、数据转换、默认值和非空约束必须人工审查，不能无条件执行自动生成内容。模型、迁移文件和相关测试应一起纳入版本管理。
+
+空库走 `init-db`，不单独执行 `upgrade`；`run` 不自动生成或执行迁移。生产只运行已审查提交的迁移，不执行 `revision`。失败时先核对历史与实际结构，不删除 `alembic_version` 或盲目 `stamp head`。
+
+## 4. 注册并验证接口路由
+
+### 内置业务模块
+
+1. 在控制器内定义 `APIRouter`、功能前缀、请求方法、响应模型及认证/权限依赖。
+2. 在 `app/api/v1/routers.py` 导入路由对象，加入业务域对应的 `DOMAIN_CONTROLLERS` 分组。
+3. 全局 API 前缀、业务域前缀、控制器前缀与接口路径共同组成最终地址；不要仅根据 Python 文件夹名称推断接口地址。
+4. 重启或确认开发热重载完成，验证请求与受保护的接口文档，检查重复路由、401/403和参数校验。
+
+### 插件自动发现
+
+- 顶层目录为 `app/plugin/module_<名称>/`，控制器文件必须命名 `controller.py`。
+- 控制器模块顶层暴露 `APIRouter` 实例；目录须可被 Python 导入，模块名不能使用 `in`、`return` 等关键字。
+- `module_example` 提供 `/example` 域前缀，控制器自己的前缀和接口路径在其后拼接。
+- 插件自动发现不代表自动生成权限、菜单或自动建表；各项仍分别处理。
+- 导入失败或路由冲突会中止启动。新增插件后确认进程已经重新加载，不能把旧进程仍在运行当作新路由已注册。
+
+## 5. 维护菜单和角色权限
+
+菜单是否存在、页面是否交付启用、角色是否授权和接口是否放行是四个不同问题。
+
+1. 在 `sql/sys_menu.json` 维护新库需要的目录、页面及按钮权限，核对父级、`route_path`、`route_name`、`component_path`、状态及权限标识。
+2. 进销存菜单同步规格同时维护 `app/scripts/inventory_menu.py`。已交付页面设为 `delivered=True`，按钮权限与接口保持一致；仅前端交付的特殊情况按该脚本现有规格处理。
+3. 更新 `tests/test_inventory_menu.py` 中的交付页面集合及对应契约断言。测试只验证代码/种子约定，不会把菜单写入正在使用的数据库。
+4. 对已初始化的开发库显式同步菜单；旧框架菜单布局确需迁移时，再执行菜单结构升级：
+
+```bash
+uv run main.py inventory-menu-init --env=dev
+# 仅旧版菜单结构升级需要，不作为每次新增菜单的固定步骤
+uv run main.py menu-upgrade --env=dev
+```
+
+5. 核对角色的页面、按钮和祖先目录授权。当前脚本会给已有的 `SUPER_ADMIN`、`ADMIN` 角色补齐已交付进销存权限，不自动给所有普通业务角色授权，也不自动创建这些角色或账号。
+6. 退出并重新登录以刷新菜单/权限，验证普通账号和超管两类角色。只有重新登录仍不能替代缺失的授权或未启用的菜单。
+
+注意：修改 JSON 不会自动覆盖已有数据库菜单；菜单同步也不是对已有路径、组件和个性化配置的无条件重写工具，具体行为以脚本为准。命令提示“新增0个节点”不等于角色授权已全部完成。路径变更应另外检查既有数据库记录。
+
+前端业务页面位于 `frontend/web/src/views/module_inventory/`，接口位于 `frontend/web/src/api/module_inventory/`；页面组件名应与菜单 `route_name` 保持一致。权限标识应贯穿菜单、按钮和后端，不为解决业务筛选而给普通用户授予整个系统管理权限。
+
+## 6. 处理公共筛选数据与异常
+
+商品分类、客户、供应商、仓库等跨业务筛选优先使用基础档案现有的轻量选项接口，不使用档案管理分页接口冒充公共选项。
+
+这些选项接口免档案管理权限校验，**不是匿名接口**，仍需登录并遵循各接口的数据范围。响应仅提供必要字段；分页、关键词和启停用条件按接口契约传递。历史单据关联值与新建可选项的可用状态应分别处理。
+
+新增功能至少覆盖无数据、参数非法、记录不存在、无权限、重复编码、非法状态、事务失败及并发冲突等与本功能有关的情况。日期与序列化约定见后端 README，避免 ORM 与 JSON 使用相同的字符串日期处理方式。
+
+## 7. 测试与提交前核对
+
+按改动范围选择测试，以下命令不执行部署初始化：
+
+```bash
+uv run pytest tests/test_inventory_menu.py -q
+uv run pytest tests/test_deployment_init.py -q
+# 广泛影响共享行为时执行全量回归
+uv run pytest
+# 仅检查指定文件；替换为本次修改的真实路径
+uv run ruff check --no-fix app/modules/inventory/basic/goods/schema.py
+```
+
+`tests/` 应保留在仓库，供开发、CI与回归使用；生产运行不依赖执行测试，不等于测试源码应删除。运行前确认测试的隔离配置，不将生产凭据交给测试脚本。
+
+- 确认模型与迁移同步、接口参数与响应一致、前端路由和菜单组件匹配。
+- 确认普通用户授权、超管限制、数据范围、筛选及导出一致。
+- 新增功能补针对性测试，记录验证结果与已知限制，不把“接口返回200”当作完整验收。
+- 查看 `git diff`，只提交本次相关代码、迁移、种子、测试与文档；不提交 `.env.*` 真实配置、日志、备份或导出文件。
+- 当前 Ruff 配置允许自动修复，检查时显式使用 `--no-fix`；不要无目的格式化整个仓库。

@@ -1,197 +1,184 @@
 <div align="center">
-     <p align="center">
-          <img src="./frontend/web/public/logo.png" width="150" height="150" alt="logo" />
-     </p>
-     <h1>FastApiAdmin <sup style="background-color: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.4em; vertical-align: super; margin-left: 5px;">v3.0.0</sup></h1>
-     <h3>🚀 追求极致代码质量，五分钟搭建企业级中后台，开箱即用</h3>
-     <p>基于 <b>FastAPI + Vue3 + TypeScript</b> 的全栈快速开发平台，Web / H5 / 小程序一站式交付</p>
-     <p align="center">
-          <a href="https://gitee.com/fastapiadmin/FastapiAdmin.git" target="_blank">
-               <img src="https://gitee.com/fastapiadmin/FastapiAdmin/badge/star.svg?theme=dark" alt="Gitee Stars">
-          </a>
-          <a href="https://github.com/fastapiadmin/FastapiAdmin.git" target="_blank">
-               <img src="https://img.shields.io/github/stars/fastapiadmin/FastapiAdmin?style=social" alt="GitHub Stars">
-          </a>
-          <a href="https://github.com/fastapiadmin/FastapiAdmin/forks" target="_blank">
-               <img src="https://img.shields.io/github/forks/fastapiadmin/FastapiAdmin?style=social" alt="GitHub Forks">
-          </a>
-          <br>
-          <a href="https://gitee.com/fastapiadmin/FastapiAdmin/blob/master/LICENSE" target="_blank">
-               <img src="https://img.shields.io/badge/License-MIT-orange" alt="License">
-          </a>
-          <a href="https://github.com/fastapiadmin/FastapiAdmin/commits" target="_blank">
-               <img src="https://img.shields.io/github/commit-activity/m/fastapiadmin/FastapiAdmin?style=flat&label=commits" alt="Commit Activity">
-          </a>
-          <img src="https://img.shields.io/badge/Python-≥3.12-blue">
-          <img src="https://img.shields.io/badge/NodeJS-≥20.0-blue">
-          <img src="https://img.shields.io/badge/MySQL-≥8.0-blue">
-          <img src="https://img.shields.io/badge/Redis-≥7.0-blue">
-     </p>
-
-简体中文 | [English](./README.en.md)
-
+     <img src="./frontend/web/src/assets/images/login/logo.png" width="150" height="150" alt="智仓云 Logo" />
+     <h1>智仓云进销存系统</h1>
+     <p>采购、销售、库存、往来与经营报表一体化管理</p>
+     <p>基于 FastAPI + Vue 3 + TypeScript，提供前后端分离的 Web 管理端</p>
 </div>
 
-## 🖥️ 界面一览
+## 系统介绍
 
-**Web 端**
+智仓云围绕商品流转和库存管理，连接基础档案、采购入库、销售出库、退货、期初库存、库存盘点与应收应付查询，帮助业务人员追踪单据、查看库存变化，并通过首页和报表了解经营情况。
 
-![仪表盘](frontend/web/public/dashboard.png)
+当前主要交付后端服务和 Web 管理端，在 FastApiAdmin 框架基础上进行业务开发。仓库保留的移动端工程、框架演示页面及开发工具，不代表进销存移动端或全部扩展能力已经交付。
 
-**移动端（H5 / 小程序 / App 同一套代码）**
+## 业务功能
 
-<p>
-<img src="frontend/web/public/app_login.png" width="180" />
-<img src="frontend/web/public/app_home.png" width="180" />
-<img src="frontend/web/public/app_mine.png" width="180" />
-</p>
+以下为当前已实现的主要业务模块，实际可见页面和操作由账号权限决定。
 
-## 💡 为什么选择 FastapiAdmin？
+| 模块 | 主要功能 |
+| --- | --- |
+| 首页 | 今日/本月采购与销售指标、库存金额、应收应付概览、经营趋势、仓库库存金额、库存预警及最近单据 |
+| 基础档案 | 商品分类、商品、客户、供应商、仓库管理，为业务单据与报表提供基础资料 |
+| 采购管理 | 采购入库、采购退货，单据新增、编辑、查看、确认、作废与导出，关联查看退货信息 |
+| 销售管理 | 销售出库、销售退货，单据管理及相关库存、往来记账 |
+| 库存管理 | 当前库存、库存流水、期初库存、库存盘点，查询库存数量、金额及变化来源 |
+| 往来管理 | 应收账款、应付账款，账单详情、往来对象余额、余额汇总及导出 |
+| 报表中心 | 采购报表、销售报表、库存报表、毛利报表，按业务条件查询和导出 |
+| 系统支撑 | 用户、部门、岗位、角色、菜单、字典、参数、操作日志与产品配置等管理能力 |
 
-| 你需要的 | FastapiAdmin | Django Admin | 纯前端模板 |
-|---------|:-----------:|:-----------:|:---------:|
-| 🎯 **开箱即用**的后台系统 | ✅ | ⚠️ 功能有限 | ❌ 只有 UI |
-| ⚡ **FastAPI 异步**高性能后端 | ✅ | ❌ 同步为主 | ❌ 无后端 |
-| 🔐 **RBAC** 菜单/按钮/数据三级权限 | ✅ | ❌ 基础 | ❌ |
-| 🤖 **代码生成器**（选表 → 出前后端代码） | ✅ | ❌ | ❌ |
-| 📱 **移动端**（H5 + 小程序）一体 | ✅ | ❌ | ❌ |
-| 🐳 **Docker 一键部署**（含 Nginx + SSL） | ✅ | ❌ | ❌ |
+往来模块当前以业务形成的账单和余额查询为主，不等同于完整的财务总账、收付款或资金核销系统；首页采购、销售金额也不代表实际资金收付。
 
-> 👉 详细技术选型对比：[为什么选择 FastapiAdmin？](https://service.fastapiadmin.com/guide/why)
+## 业务流程
 
-## 🍪 在线体验
+```text
+维护商品分类、商品、客户、供应商、仓库
+  → 按需确认期初库存
+  → 采购入库 / 销售出库
+  → 按业务需要办理关联退货、库存盘点
+  → 查看库存余额、库存流水、应收应付和经营报表
+```
 
-| 端 | 地址 | 账号 |
-|----|------|------|
-| 💻 Web 端 | [service.fastapiadmin.com/web](https://service.fastapiadmin.com/web) | `admin` / `123456` |
-| 📱 移动端 | [service.fastapiadmin.com/app](https://service.fastapiadmin.com/app) | `admin` / `123456` |
-| 📖 官方文档 | [service.fastapiadmin.com](https://service.fastapiadmin.com) | 无需登录 |
+- 单据区分草稿、已确认、已作废等业务状态，可执行操作受状态和权限共同约束。
+- 单据确认通过业务服务形成库存流水及相关往来记录，不以直接修改余额替代业务处理。
+- 采购和销售退货关联原业务单据，查询时可追踪来源与退货情况。
+- 列表、详情、导出和报表按各自权限与业务口径处理，查看页面不等于拥有编辑或确认权限。
 
-## 🚀 5 分钟本地跑起来
+## 用户与权限
+
+| 用户类型 | 使用边界 |
+| --- | --- |
+| 普通业务用户 | 按岗位授予进销存页面、按钮和数据范围，不要求授予系统管理权限才能使用业务筛选 |
+| 业务管理角色 | 按实际授权维护业务与管理资料；角色名称或拥有较多菜单不等于超管身份 |
+| 超级管理员 | 管理受限的产品配置及超管专属能力，维护用户授权与系统运行相关设置 |
+
+AI 管理、监控管理、接口管理、任务管理和代码生成保留为超管专属能力，不作为普通业务用户入口。监控、接口、任务相关菜单归入系统管理，AI 管理保留独立入口。框架演示代码保留，但不开放业务菜单入口。
+
+产品配置由后端统一控制；超管统一调整允许下发的设置，用户使用发布后的配置。快速入口仅超管可见，即使开启也不下发给普通用户。当前登录使用账号密码，不提供手机号、扫码和第三方登录入口。
+
+## 技术架构
+
+| 层次 | 技术与职责 |
+| --- | --- |
+| Web 管理端 | Vue 3、TypeScript、Vite、Element Plus、Pinia，承载进销存页面、动态菜单和交互 |
+| 后端接口 | FastAPI、Pydantic，处理请求校验、认证授权和统一响应 |
+| 业务与持久化 | 按 schema / crud / service / controller 分层，使用 SQLAlchemy 管理模型与事务 |
+| 数据库迁移 | Alembic 管理已审查的结构变更，显式区分空库初始化与已有库升级 |
+| 缓存与会话 | Redis 提供登录会话及运行缓存等能力 |
+| 部署 | 支持宿主机部署与 Docker Compose，前后端通过代理或独立服务发布 |
+
+数据库适配包含 MySQL、PostgreSQL 和 SQLite，具体驱动和配置见后端文档。生产数据库、Docker、代理与备份恢复需在目标环境验收，不将本地测试视为生产可用性证明。
+
+## 本地运行
+
+首次运行先准备 Python、uv、Node.js、pnpm，以及可连接的数据库和 Redis。`uv sync` 只安装 Python 依赖，不会安装数据库服务；使用 MySQL/PostgreSQL 时请先创建目标空库。
+
+**1. 获取代码与配置环境**
+
+获取本项目当前版本代码，并进入仓库根目录。原框架仓库用于了解框架来源，不保证包含智仓云定制模块和显式初始化命令；部署时请使用本项目实际仓库及对应版本。
+
+以下复制仅在配置文件不存在时执行，不覆盖已有配置（Bash 示例；PowerShell 使用 `Copy-Item`）：
 
 ```bash
-# 1. 克隆
-git clone https://gitee.com/fastapiadmin/FastapiAdmin.git
-
-# 2. 配置环境
 cp backend/env/.env.example backend/env/.env.dev
 cp frontend/web/.env.development.example frontend/web/.env.development
-
-# 3. 启动后端（首次自动建表 + 初始化数据）
-cd backend && uv sync && uv run main.py run --env=dev
-
-# 4. 启动前端
-cd ../frontend/web && pnpm install && pnpm run dev
-
-# ✅ 浏览器打开 http://127.0.0.1:5173，用 admin/123456 登录
 ```
 
-| 环境要求 | |
-|---------|------|
-| Python ≥ 3.12 | Node.js ≥ 20.0 + pnpm |
-| MySQL 8.0+ / PostgreSQL 14+ | Redis 6.x / 7.x |
+编辑后端 `backend/env/.env.dev` 的数据库、Redis 和安全配置，并核对前端代理目标。新空库、已有业务库的处理不同；已有库应先按部署指南备份与升级，不按新空库试错。
 
-### 🐳 或者：Docker 一键部署
+**2. 显式初始化后启动后端**
+
+在仓库的 `backend/` 目录逐条执行，每步成功后再继续：
 
 ```bash
-cp docker/.env.example docker/.env    # 填写 MySQL / Redis 密码
-./deploy.sh                           # 自动构建镜像并启动全栈（含 Nginx + SSL）
+uv sync --frozen
+uv run main.py init-db --env=dev --dry-run
+uv run main.py init-db --env=dev --apply
+uv run main.py init-check --env=dev
+uv run main.py run --env=dev
 ```
 
-> 端口、SSL 证书、前端构建等细节见 [Docker 部署文档](docker/README.md)。
+`run` 只检查并启动，不自动建表、迁移或导入业务数据。新库默认只创建必要超管 `super`，初始密码为 `super123456@#`，可通过部署环境变量覆盖；已有账号不会被重置。首次登录应及时改密，生产建议注入独立密码。账号与安全配置的完整规则见部署指南。
 
-## 📦 工程结构
+**3. 启动 Web 前端**
+
+另开终端，在仓库的 `frontend/web/` 目录执行：
+
+```bash
+pnpm install --frozen-lockfile
+pnpm run dev
+```
+
+当前默认访问 `http://127.0.0.1:5180/web/`，以 `frontend/web/.env` 的端口和基础路径为准。后端默认端口8001，以实际环境配置为准。同版本已初始化后的日常启动只需后端 `run` 与前端 `dev`，不重复初始化。
+
+业务数据初始为空是正常状态；组织导入和业务样例导入均为可选显式操作，不随启动执行。详细步骤见 [后端 README](backend/README.md) 和 [部署与初始化指南](backend/DEPLOYMENT_INIT.md)。
+
+| 环境要求 | 说明 |
+| --- | --- |
+| Python 3.12+、uv | 安装与运行后端，依赖版本按 `backend/uv.lock` 锁定 |
+| Node.js 20+、pnpm | 安装与运行 Web 前端，依赖版本按前端锁文件安装 |
+| 数据库、Redis | 先准备可连接的服务及数据库，参数与后端环境配置一致 |
+
+## 部署与升级
+
+宿主机首次部署按 [部署与初始化指南](backend/DEPLOYMENT_INIT.md) 的“首次上云或新空库部署”步骤执行。
+
+使用 Docker 时，首次部署按 [Docker 初始化顺序](backend/DEPLOYMENT_INIT.md#7-docker-compose-执行顺序) 操作：准备配置与持久化目录 → 启动 MySQL/Redis → 一次性容器预检、初始化与验收 → 发布前端产物 → 启动后端/Nginx。
+
+> 根目录 `deploy.sh` 可构建并启动服务，但当前未串联显式数据库初始化，不能代替首次部署流程。端口、SSL 证书和目录映射另见 [Docker 部署文档](docker/README.md)；初始化命令以部署与初始化指南为准。不要覆盖已有 `.env` 或删除数据库目录来重试部署。
+
+首次空库初始化、已有库升级和同版本重启使用不同流程。生产部署前应确认备份、密钥、持久化目录、账号权限及恢复方案；业务样例导入不是上线必需步骤。
+
+- **单实例部署**：当前定时调度等运行能力按单实例方式验收，不把增加 worker 或容器副本视为已经支持分布式部署。
+- **密钥安全**：真实凭据通过受控环境配置注入，不提交到仓库；初始化账号应及时改密。
+- **结构变更**：生产只应用已审查并随版本提交的迁移，不在生产现场生成迁移，不通过清库或删除版本记录修复失败。
+- **业务验收**：除安装检查外，还应验证普通角色权限、单据状态、库存与往来记录，以及报表口径。
+
+## 工程结构
 
 ```
-FastapiAdmin/            # Monorepo 全栈工程
-├─ backend/              # FastAPI 后端（Pydantic 2.0 + SQLAlchemy + Alembic）
+项目根目录/
+├─ backend/              # 后端服务与测试
+│   ├── app/modules/inventory/  # 进销存业务：档案、采购、销售、库存、往来、报表、首页
+│   ├── app/modules/system/    # 用户、角色、菜单和产品配置等系统能力
+│   ├── app/alembic/           # 数据库迁移
+│   ├── app/scripts/           # 初始化、菜单及数据导入实现
+│   ├── scripts/               # 独立业务数据导入和历史维护入口
+│   ├── tests/                 # 自动化测试
+│   ├── README_DEV.md          # 开发指南
+│   └── DEPLOYMENT_INIT.md     # 部署与初始化指南
 ├─ frontend/
-│   ├── web/             # Vue3 Web 前端（Element Plus + TypeScript）
-│   ├── app/             # UniApp 移动端（H5 + 小程序 + App）
-│   └── docs/            # VitePress 文档网站
-├─ docker/               # Docker Compose 一键部署（Nginx + SSL）
-├─ deploy.sh             # 一键部署脚本
+│   ├── web/             # 智仓云 Web 管理端
+│   ├── app/             # 原框架移动端工程，非当前进销存交付范围
+│   └── docs/            # 原框架文档站源码，具体业务以本项目文档为准
+├─ docker/               # Compose、Nginx、数据库及缓存部署配置
+├─ deploy.sh             # 构建与启动脚本，不代替首次初始化
 └─ LICENSE               # MIT 开源协议
 ```
 
-## 📌 内置功能
+## 文档导航
 
-> **200+ REST 接口** · MySQL / PostgreSQL / SQLite 三方言 · SFTP / S3 / OSS / COS / OBS 五种存储协议 · `ENABLED_MODULES` 一行开关裁剪模块
+| 文档 | 用途 |
+| --- | --- |
+| [后端 README](backend/README.md) | 后端目录、技术栈、本地初始化与启动 |
+| [后端开发指南](backend/README_DEV.md) | 模型迁移、接口开发、路由注册、菜单权限与测试 |
+| [部署与初始化指南](backend/DEPLOYMENT_INIT.md) | 首次部署、升级、账号规则、组织和业务数据导入、异常处理 |
+| [Web 工程说明](frontend/web/README.md) | 前端工程与开发参考；产品范围和初始化规则以本项目根文档及部署指南为准 |
+| [Docker 配置参考](docker/README.md) | 端口、证书、目录映射等配置；初始化顺序以部署与初始化指南为准 |
 
-### 核心模块（始终启用，不可裁剪）
+## 开发与贡献
 
-| 模块 | 包含能力 |
-|------|---------|
-| 📊 仪表盘 | 工作台、数据分析 |
-| ⚙️ 系统管理 | 用户 / 角色 / 菜单 / 部门 / 岗位 / 字典 / 参数 / 公告 / 工单 / 版本 |
-| 👀 监控管理 | 在线用户 / 服务器监控 / 缓存监控 |
-| 📝 日志管理 | 操作日志审计 |
-| 🧰 开发工具 | 接口文档 |
+修改功能前先明确业务范围、接口契约和权限边界，沿用现有模块分层；涉及表结构时同步迁移，涉及菜单时同时核对数据库节点与角色授权。提交前执行与改动范围相匹配的类型检查、测试和构建验证，具体命令见各工程文档。
 
-### 扩展模块（默认启用，可用 `ENABLED_MODULES` 裁剪）
+反馈问题时提供版本、复现步骤、预期结果及脱敏后的错误信息；不上传真实密码、完整连接串或企业业务数据。
 
-| 模块 | 包含能力 | 裁剪开关 |
-|------|---------|---------|
-| 🧩 任务管理 | 定时任务调度 + 可视化工作流编排（内置业务节点） | `task` |
-| 🔧 代码生成器 | 选表 → 生成前后端全量代码 | `generator` |
-| 📁 数据存储 | 统一文件 / 对象存储（SFTP / S3 / OSS / COS / OBS） | `storage` |
-| 🤖 AI 对话 | 基于 Agno 的智能体对话 | `ai` |
-| 💬 内部聊天 | 系统内用户**纯文字**私聊 / 群聊（WebSocket 实时推送 + 未读角标） | `chat` |
+## 框架来源与致谢
 
-## 🔧 模块裁剪
+智仓云基于 **FastApiAdmin** 进行业务定制，感谢原框架作者、[框架贡献者](https://github.com/fastapiadmin/FastapiAdmin/graphs/contributors)及相关开源项目提供的基础能力。
 
-扩展模块可通过 `backend/app/config/setting.py` 中的 `ENABLED_MODULES` 按需启用 / 停用——**移除列表项即可，无需删除任何代码或菜单**，对应的 REST 接口、WebSocket 端点与初始化逻辑将自动不加载：
+- 原框架仓库：[GitHub](https://github.com/fastapiadmin/FastapiAdmin) · [Gitee](https://gitee.com/fastapiadmin/FastapiAdmin)
+- 原框架文档：[FastApiAdmin 文档](https://service.fastapiadmin.com)，用于框架技术参考，不代表智仓云业务功能或部署步骤。
+- 后端技术：[FastAPI](https://fastapi.tiangolo.com/) · [Pydantic](https://docs.pydantic.dev/) · [SQLAlchemy](https://www.sqlalchemy.org/) · [APScheduler](https://github.com/agronholm/apscheduler)
+- 前端技术：[Vue 3](https://cn.vuejs.org/) · [TypeScript](https://www.typescriptlang.org/) · [Vite](https://vitejs.dev/) · [Element Plus](https://element-plus.org/)
+- 保留扩展所用技术：[Agno](https://github.com/agno-agi/agno) · [UniApp](https://uniapp.dcloud.net.cn/) · [Wot Design Uni](https://wot-ui.cn/)
 
-```python
-# 例如：停用内部聊天与 AI 对话，保留其余扩展模块
-ENABLED_MODULES = ["generator", "task", "storage"]
-```
-
-## 🚦 部署说明
-
-- **聊天边界**：内部聊天定位为**轻量内部沟通**，仅支持纯文字消息，**不含文件传输、撤回、已读回执、多端同步等 IM 能力**；如有强 IM 需求，请对接企业微信 / 钉钉 / 飞书等成熟产品。随时可在 `ENABLED_MODULES` 中移除 `chat` 停用。
-- **单实例部署**：实时功能（内部聊天 WebSocket、定时任务调度器）基于单实例内存连接与本地调度实现，请以**单实例方式**部署。如需水平扩展，请自行引入 Redis Pub/Sub 或消息队列。
-- **密钥安全**：所有第三方密钥（AI、云存储等）请配置在 `backend/env/.env.*` 环境变量中，**切勿提交到仓库或写入数据库**。
-- **数据库迁移**：正式环境请使用 Alembic 迁移（`uv run alembic upgrade head`）管理表结构变更，`create_all` 仅用于首次初始化的兜底。
-
-## 📷 更多截图
-
-| 登录 | 代码生成 | AI 助手 |
-| ---- | -------- | ------- |
-| ![登录](frontend/web/public/login.png) | ![代码生成](frontend/web/public/gencode.png) | ![AI](frontend/web/public/ai.png) |
-
-## 📖 文档地址
-
-- 🌐 [官网文档](https://service.fastapiadmin.com) — 完整开发指南、架构设计、二开教程
-- 📁 子工程 README：[backend](backend/README.md) · [web](frontend/web/README.md) · [移动端](frontend/app/README.md) · [Docker](docker/README.md)
-
-## 🤝 参与贡献
-
-欢迎提交 Issue / PR！详见 [贡献指南](https://service.fastapiadmin.com/about/contributing)。
-
-## 👥 社区与支持
-
-<p>
-<img src="frontend/web/public/group.png" width="200" height="260" style="margin-right:30px"/>
-<img src="frontend/web/public/wechatPay.jpg" width="200" height="260" />
-</p>
-
-## ⭐ Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=fastapiadmin/FastapiAdmin&type=Date)](https://star-history.com/#fastapiadmin/FastapiAdmin&Date)
-
-## 👥 贡献者
-> 感谢以下所有给 FastapiAdmin 贡献过代码的 开发者。
-
-<a href="https://github.com/fastapiadmin/FastapiAdmin/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=fastapiadmin/FastapiAdmin"/>
-</a>
-
-## 🙏 鸣谢
-
-> 如果你觉得项目有用，请给一个 ⭐️ Star 支持！
-
-- 后端：[FastAPI](https://fastapi.tiangolo.com/) · [Pydantic](https://docs.pydantic.dev/) · [SQLAlchemy](https://www.sqlalchemy.org/) · [APScheduler](https://github.com/agronholm/apscheduler)
-- 前端：[Vue3](https://cn.vuejs.org/) · [TypeScript](https://www.typescriptlang.org/) · [Vite](https://vitejs.dev/) · [Element Plus](https://element-plus.org/)
-- 移动端：[UniApp](https://uniapp.dcloud.net.cn/) · [Wot Design Uni](https://wot-ui.cn/)
-- AI：[Agno](https://github.com/agno-agi/agno)
+项目保留原框架的 MIT 许可证和版权声明，详见 [LICENSE](LICENSE)。本文介绍的是智仓云业务系统，不将原框架网站、社群或在线演示作为本产品的官方服务入口。
